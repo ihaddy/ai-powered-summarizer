@@ -16,23 +16,20 @@ services:
 
     volumes:
       - ./server:/usr/src/app
+      - /usr/src/app/node_modules
+
 
   flask-app:
     build: ./python-youtube-scraper
-    ports:
-      - "5000:5000"
     volumes:
       - ./python-youtube-scraper:/usr/src/app
   redis:
     image: "redis:latest"
-    ports:
-      - "6379:6379"
+
   mongo:
-    image: "mongo:latest"
-    ports:
-      - "27017:27017"
+    image: "mongo:4"
+
   rabbitmq:
     image: "rabbitmq:3-management"
     ports:
-      - "5672:5672"
       - "15672:15672"
