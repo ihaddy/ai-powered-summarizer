@@ -1,5 +1,10 @@
+<div align="center">
+    <img src="https://github.com/ihaddy/ai-powered-summarizer/assets/8469329/05db8d71-0d58-4bd5-bb69-f4a37f8682a7" width="300">
+</div>
+<div align="center">
+<h1>  🚀 AI-Summarizer 🚀</h1> 
 
-# 🚀 AI-Summarizer 🚀
+   </div>
 ### Overview
 Welcome to AI-Summarizer, a cutting-edge tool designed to revolutionize the way you interact with content. In the digital age, where information overload is a constant challenge, AI-Summarizer emerges as your personal assistant, simplifying and condensing information for effortless consumption. Built on the power of Large Language Models (LLMs), this tool is not just a summarizer - it's your gateway to understanding complex content quickly and efficiently.
 
