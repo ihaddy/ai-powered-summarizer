@@ -23,8 +23,15 @@ Welcome to AI-Summarizer, a cutting-edge tool designed to revolutionize the way 
 To start using AI-Summarizer, follow these simple steps:
 
 1. Clone the Repository: Clone the AI-Summarizer repository to your local machine.
-2. Run with Docker-compose: With Docker-compose installed, run the provided command in the repository. This sets up everything you need to start summarizing.
-3. Install the Chrome Extension: Add our Chrome extension to your browser from the provided link and point it to your custom server.
+2. Run with Docker-compose: 
+* With Docker-compose installed, run the provided command in the repository.
+   
+~~~~
+docker-compose up -d 
+  ~~~~
+
+3. Install the Chrome Extension: 
+* Download the chrome extension code to your compute and load it into chrome by going to chrome://extensions and clicking "load unpacked extension" in your browser. Make sure you've changed the custom endpoint to point the chrome extension to your own domain name that you're running the provided backend on.
 4. Enjoy Summarizing: Start summarizing your content, be it articles, blogs, or YouTube videos, in just a click!
 
 ##  👥 Contributing  👥
