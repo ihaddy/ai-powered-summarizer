@@ -1,0 +1,35 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Text Summarizer</title>
+    <style>
+        body { 
+            width: 350px; 
+            margin: 10px; 
+            font-family: Arial, sans-serif; 
+        }
+        textarea { 
+            width: 100%; 
+            height: 150px; 
+            margin-bottom: 10px; 
+        }
+        button { 
+            width: 100%; 
+            padding: 10px; 
+            margin-bottom: 10px; 
+        }
+        #summaryResult { 
+            white-space: pre-wrap; 
+            word-wrap: break-word; 
+        }
+    </style>
+   
+</head>
+<body>
+    <textarea id="textInput" placeholder="Paste text here..."></textarea>
+    <button id="submitBtn">Summarize</button>
+    <div id="summaryResult"></div>
+    <script src="popup.js"></script>
+</body>
+</html>

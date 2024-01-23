@@ -1,0 +1,25 @@
+# Ignore .env files
+.env
+
+# Ignore node_modules
+node_modules/
+**/node_modules/
+
+# Ignore directories named 'ublock' (or similar) and their contents
+**/[uU][bB][lL][oO][cC][kK]*/
+**/[uU][bB][lL][oO][cC][kK]/**/*
+**/*[uU][bB][lL][oO][cC][kK]*/**
+**/*[uU][bB][lL][oO][cC][kK]*/*.*
+
+# Ignore Python bytecode files in any directory
+**/*.py[cod]
+**/*$py.class
+
+# Ignore Python cache and distribution files
+**/__pycache__/
+**/*.egg-info/
+**/.eggs/
+**/dist/
+**/build/
+
+**/static/**
