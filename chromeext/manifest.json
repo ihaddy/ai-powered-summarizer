@@ -4,7 +4,7 @@
     "version": "1.0",
     "description": "Submit text to be summarized by a backend service.",
     "permissions": ["activeTab"],
-    "host_permissions": ["https://org.splurt.net/"],
+    "host_permissions": ["WILL-BE-REPLACED-BY-SETUP-CHROMEEXTENSION-SCRIPT"],
     "action": {
         
         "default_icon": {
