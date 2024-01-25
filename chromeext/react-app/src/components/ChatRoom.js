@@ -3,6 +3,7 @@ import { Box, Drawer, List, ListItem, ListItemText, IconButton, Toolbar } from '
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import useChatStore from './chatstore';
 import Chat from './Chat';
+import {BASE_URL} from '../buildvars'
 
 function ChatRoom() {
     const { isSidebarOpen, toggleSidebar, articleIds, setActiveChatId, activeChatId, getVideoTitle, setVideoTitle } = useChatStore();
@@ -10,7 +11,7 @@ function ChatRoom() {
 
     const fetchAndUpdateTitle = async (articleId) => {
         try {
-            const response = await fetch(`https://org.splurt.net/chat/${articleId}`);
+            const response = await fetch(`${BASE_URL}/chat/${articleId}`);
             if (response.ok) {
                 const data = await response.json();
                 if (data && data.title) {

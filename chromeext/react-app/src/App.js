@@ -6,13 +6,14 @@ import Summarizer from './components/Summarizer';
 import ChatRoom from './components/ChatRoom';
 // Import the store
 import useChatStore from './components/chatstore';
+import {BASE_URL} from '../src/buildvars'
 
 function App() {
   const { isSidebarOpen, toggleSidebar, addArticleId, setArticleIds } = useChatStore();
 
   useEffect(() => {
     // Fetch all article IDs when the component mounts
-    fetch('https://org.splurt.net/articles')
+    fetch(`${BASE_URL}/articles`)
       .then(response => response.json())
       .then(articleIds => {
         // Store the retrieved article IDs in the chat store

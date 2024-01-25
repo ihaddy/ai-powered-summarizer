@@ -2,6 +2,7 @@ import React, { useState, useCallback, useEffect } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { Container, Box, TextareaAutosize, Button, CircularProgress } from '@mui/material';
 import useStore from './summarizerstore'
+import {BASE_URL} from '../buildvars'
 
 function Summarizer() {
 
@@ -11,7 +12,7 @@ function Summarizer() {
     const queryClient = useQueryClient();
   
     const fetchSummarize = async (textInput) => {
-      const response = await fetch('https://org.splurt.net/summarize', {
+      const response = await fetch(`${BASE_URL}/summarize`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ content: textInput }),
@@ -46,7 +47,7 @@ function Summarizer() {
     };
   
     const subscribeToSummary = useCallback((articleId) => {
-      const evtSource = new EventSource(`https://org.splurt.net/summary_stream/${articleId}`);
+      const evtSource = new EventSource(`${BASE_URL}/summary_stream/${articleId}`);
   
       evtSource.onmessage = function(event) {
         const data = JSON.parse(event.data);

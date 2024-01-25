@@ -1,9 +1,10 @@
 import React, { useEffect } from 'react';
 import useChatStore from './chatstore';
+import {BASE_URL} from   '../buildvars'
 
 const Chat = ({ articleId }) => {
     const { getChatHistory, setChatHistory,getVideoTitle, setVideoTitle } = useChatStore();
-    const url = `https://org.splurt.net/chat/${articleId}`;
+    const url = `${BASE_URL}/chat/${articleId}`;
     const videoTitle = getVideoTitle(articleId) || `Chat History for ${articleId}`;
 
 

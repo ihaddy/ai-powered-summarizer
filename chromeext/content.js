@@ -1,3 +1,4 @@
+import { BASE_URL } from './config.js';
 console.log('Content script loaded');
 function sendVideoIdToEndpoint(url) {
 
@@ -39,7 +40,7 @@ function addButton() {
                             console.log('Sending Video ID to remote endpoint:', videoId);
 
                             try {
-                                const response = await fetch('https://org.splurt.net/summarize-videos', {
+                                const response = await fetch(`${BASE_URL}/summarize-videos`, {
                                     method: 'POST',
                                     headers: {
                                         'Content-Type': 'application/json',

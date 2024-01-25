@@ -1,9 +1,11 @@
+import { BASE_URL } from "./config";
+
 document.getElementById('submitBtn').addEventListener('click', async () => {
     const textInput = document.getElementById('textInput').value;
     console.log('Text to be summarized:', textInput); // Log the pasted text
 
     try {
-        const response = await fetch('https://org.splurt.net/summarize', {
+        const response = await fetch(`${BASE_URL}/summarize`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ content: textInput })
@@ -22,7 +24,7 @@ document.getElementById('submitBtn').addEventListener('click', async () => {
 });
 
 function subscribeToSummary(articleId) {
-    const evtSource = new EventSource(`https://org.splurt.net/summary_stream/${articleId}`);
+    const evtSource = new EventSource(`${BASE_URL}/summary_stream/${articleId}`);
 
     evtSource.onmessage = function(event) {
         const data = JSON.parse(event.data);
