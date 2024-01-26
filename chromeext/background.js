@@ -1,4 +1,12 @@
-console.log('background.js loaded');
+import { BASE_URL, SECURE_TOKEN } from './config.js'
+
+chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
+    if (request.action === "getBaseUrl") {
+      sendResponse({ baseUrl: BASE_URL });
+    } else if (request.action === "getSecureToken") {
+      sendResponse({ secureToken: SECURE_TOKEN });
+    }
+});
 
 chrome.action.onClicked.addListener((tab) => {
     console.log('Extension icon clicked', tab);

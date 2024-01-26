@@ -3,6 +3,7 @@ const router = express.Router();
 const { v4: uuidv4 } = require('uuid');
 const connectRabbitMQ = require('../utils/rabbitmq');
 const {  sseEmitter } = require('../utils/subscriber');
+const Chat = require('../models/chatModel');
 
 
 router.post('/summarize', async (req, res) => {
@@ -53,7 +54,17 @@ router.get('/summary_stream/:articleId', (req, res) => {
 });
 
 router.get('/articles', async (req, res) => {
-    // ... existing code for /articles route
+    console.log('GET /articles - Request received to retrieve all article IDs');
+    try {
+        console.log('Querying MongoDB for all article IDs');
+        const chatLogs = await Chat.find({}, 'articleId'); // Mongoose find
+        const articleIds = chatLogs.map(chat => chat.articleId);
+        console.log('Successfully retrieved article IDs');
+        res.status(200).json(articleIds);
+    } catch (error) {
+        console.error('GET /articles - Error:', error);
+        res.status(500).send({ error: error.message });
+    }
 });
 
 module.exports = router;

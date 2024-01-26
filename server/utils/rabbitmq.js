@@ -2,7 +2,7 @@ const amqp = require('amqplib');
 
 const RABBITMQ_URL = process.env.RABBITMQ_URL || 'amqp://localhost'; // Modify as per your RabbitMQ server URL
 
-async function connectRabbitMQ(retryCount = 5, interval = 5000) {
+async function connectRabbitMQ(retryCount = 30, interval = 5000) {
   for (let i = 0; i < retryCount; i++) {
     try {
       console.log(`Attempting to connect to RabbitMQ (Attempt ${i + 1}/${retryCount})...`);

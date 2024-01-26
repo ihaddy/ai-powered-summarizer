@@ -6,14 +6,18 @@ import Summarizer from './components/Summarizer';
 import ChatRoom from './components/ChatRoom';
 // Import the store
 import useChatStore from './components/chatstore';
-import {BASE_URL} from '../src/buildvars'
+import {BASE_URL, SECURE_TOKEN} from '../src/buildvars'
 
 function App() {
   const { isSidebarOpen, toggleSidebar, addArticleId, setArticleIds } = useChatStore();
 
   useEffect(() => {
+    console.log('token: ',SECURE_TOKEN)
     // Fetch all article IDs when the component mounts
-    fetch(`${BASE_URL}/articles`)
+    fetch(`${BASE_URL}/articles`,{
+    headers: {
+      'securetoken': SECURE_TOKEN
+  }})
       .then(response => response.json())
       .then(articleIds => {
         // Store the retrieved article IDs in the chat store

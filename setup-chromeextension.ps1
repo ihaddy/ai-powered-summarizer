@@ -26,7 +26,7 @@ export const BASE_URL = '$baseUrl';" | Out-File -FilePath $CONFIG_JS
 
 # Update manifest.json
 $manifest = Get-Content $MANIFEST_JSON | ConvertFrom-Json
-$manifest.host_permissions[0] = "https://$baseUrl/"
+$manifest.host_permissions[0] = "$baseUrl/"
 $manifest | ConvertTo-Json | Set-Content $MANIFEST_JSON -Depth 100
 
 Write-Host "Setup complete for Chrome Extension."
@@ -38,3 +38,11 @@ npm install
 npm run build
 
 Write-Host "React app build complete."
+
+
+# Zip the chromeext directory excluding react-app
+Write-Host "Zipping Chrome Extension..."
+Set-Location $ROOT_DIR
+Remove-Item -Path "$ROOT_DIR/chromeext.zip" -ErrorAction Ignore
+Compress-Archive -Path "$ROOT_DIR/chromeext/*" -DestinationPath "$ROOT_DIR/chromeext.zip" -Exclude "chromeext/react-app/*"
+Write-Host "Chrome Extension zipped as chromeext.zip"

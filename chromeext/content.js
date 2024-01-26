@@ -1,9 +1,18 @@
-import { BASE_URL } from './config.js';
+
+
 console.log('Content script loaded');
-function sendVideoIdToEndpoint(url) {
+chrome.runtime.sendMessage({ action: "getBaseUrl" }, function(response) {
+    if (response.baseUrl) {
+      // Use the BASE_URL received from the background script
+      BASE_URL = response.baseUrl
+    }
+  });
 
-
-}
+  chrome.runtime.sendMessage({ action: "getSecureToken" }, function(response) {
+    console.log("Secure Token in content script: ");
+    SECURE_TOKEN = response.secureToken
+  });
+  
 function addButton() {
     const elements = document.querySelectorAll('#metadata-line > span:nth-child(4)');
 
@@ -44,6 +53,7 @@ function addButton() {
                                     method: 'POST',
                                     headers: {
                                         'Content-Type': 'application/json',
+                                        'securetoken': SECURE_TOKEN
                                     },
                                     body: JSON.stringify({ videoId: videoId }),
                                 });

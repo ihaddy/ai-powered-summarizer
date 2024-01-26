@@ -1,7 +1,10 @@
 version: '3'
 services:
   express-app:
-    build: ./server
+    build:
+      context: ./server
+      args:
+        NODE_ENV: development
     ports:
       - "3002:3002"
     depends_on:
@@ -13,11 +16,10 @@ services:
       - MONGODB_URI=mongodb://mongo:27017/AIsummarizer
       - REDISHOST=redis://redis:6379
       - RABBITMQ_URL=amqp://rabbitmq
-
     volumes:
       - ./server:/usr/src/app
       - /usr/src/app/node_modules
-
+    command: npm run start:dev  
 
   flask-app:
     build: ./python-youtube-scraper
@@ -33,3 +35,14 @@ services:
     image: "rabbitmq:3-management"
     ports:
       - "15672:15672"
+
+  worker:
+    build: ./worker
+    depends_on:
+      - rabbitmq
+    env_file:
+      - ./worker/.env
+    environment:
+      - RABBITMQ_URL=amqp://rabbitmq
+    volumes:
+      - ./worker:/usr/src/worker

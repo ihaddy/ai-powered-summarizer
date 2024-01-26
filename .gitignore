@@ -5,6 +5,7 @@
 node_modules/
 **/node_modules/
 
+
 # Ignore directories named 'ublock' (or similar) and their contents
 **/[uU][bB][lL][oO][cC][kK]*/
 **/[uU][bB][lL][oO][cC][kK]/**/*
@@ -26,3 +27,4 @@ node_modules/
 
 **/config*
 **/buildvars*
+**/post_build_copy.sh

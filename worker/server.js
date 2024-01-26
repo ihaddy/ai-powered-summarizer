@@ -8,10 +8,10 @@ import connectRabbitMQ from './rabbitmq.js';
 
 const outputParser = new StringOutputParser();
 
-const openaiApiKey = process.env.OPENAI_API_KEY;
+const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
 
 const chatModel = new ChatOpenAI({
-  openAIApiKey: openaiApiKey,
+  openAIApiKey: OPENAI_API_KEY,
   modelName: "gpt-4-1106-preview"
 });
 

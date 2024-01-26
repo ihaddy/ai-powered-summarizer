@@ -1,3 +1,4 @@
+import logging
 from flask import Flask, jsonify, request
 from youtube_transcript_api import YouTubeTranscriptApi
 from selenium import webdriver
@@ -6,14 +7,18 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from chromedriver_autoinstaller import install as install_chrome_driver
 import time
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+install_chrome_driver()
 
 app = Flask(__name__)
 
 def scrape_video(video_id):
-    install_chrome_driver()
     chrome_options = webdriver.ChromeOptions()
     chrome_options.add_argument("--headless")
-
+    chrome_options.add_argument("--no-sandbox")  # Bypass OS security model, REQUIRED on Linux
+    chrome_options.add_argument("--disable-dev-shm-usage")  # Overcome limited resource problems
     driver = webdriver.Chrome(options=chrome_options)
 
     result = {"title": "", "description": "", "transcript": ""}
@@ -52,8 +57,11 @@ def scrape_video(video_id):
 @app.route('/scrape', methods=['GET'])
 def scrape():
     video_id = request.args.get('video_id', default='80gjxcA2Jdw', type=str)
+    logger.info(f"Received request to scrape video ID: {video_id}")
     scraped_data = scrape_video(video_id)
+    logger.info(f"Sending scraped data for video ID: {video_id}")
     return jsonify(scraped_data)
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    logger.info("Starting Flask application")
+    app.run(host='0.0.0.0', port=5000, debug=True)

@@ -1,4 +1,4 @@
-import { BASE_URL } from "./config";
+const { BASE_URL } = require('./config.js');
 
 document.getElementById('submitBtn').addEventListener('click', async () => {
     const textInput = document.getElementById('textInput').value;

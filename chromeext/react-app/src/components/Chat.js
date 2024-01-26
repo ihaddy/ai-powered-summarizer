@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import useChatStore from './chatstore';
-import {BASE_URL} from   '../buildvars'
+import {BASE_URL, SECURE_TOKEN} from   '../buildvars'
 
 const Chat = ({ articleId }) => {
     const { getChatHistory, setChatHistory,getVideoTitle, setVideoTitle } = useChatStore();
@@ -13,7 +13,9 @@ const Chat = ({ articleId }) => {
             const history = getChatHistory(articleId);
             if (!history || history.length === 0) {
                 try {
-                    const response = await fetch(url);
+                    const response = await fetch(url,  {headers: {
+                        'securetoken': SECURE_TOKEN
+                    }});
                     if (response.ok) {
                         const data = await response.json();
                         console.log("Received data from server:", data);
