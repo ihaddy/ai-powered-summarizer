@@ -2,26 +2,25 @@ const express = require('express');
 const Chat = require('../models/chatModel');
 const redisClient = require('../utils/redisClient');
 const router = express.Router();
+const verifyJWT = require('../utils/verifyJWT'); 
+const logger = require('../utils/logger');
 
-router.get('/chat/:articleId', async (req, res) => {
+
+router.get('/chat/:articleId', verifyJWT, async (req, res) => {
+    const userId = req.user.userId;
     console.log(`GET /chat/${req.params.articleId} - Request received to retrieve chat log`);
+
     try {
         const articleId = req.params.articleId;
-        console.log(`Attempting to retrieve chat log from Redis cache for articleId: ${articleId}`);
-        const cachedChatLog = await redisClient.get(`chat:${articleId}`);
-        if (cachedChatLog) {
-            console.log('Found chat log in Redis cache');
-            return res.status(200).json(JSON.parse(cachedChatLog));
-        }
 
-        console.log(`Chat log not in Redis cache, querying MongoDB for articleId: ${articleId}`);
-        const chatLog = await Chat.findOne({ articleId: articleId }); // Mongoose findOne
+        console.log(`Fetching chat log from MongoDB for userId: ${userId}, articleId: ${articleId}`);
+        const chatLog = await Chat.findOne({ userId: userId, articleId: articleId });
+
         if (chatLog) {
-            console.log('Found chat log in MongoDB, caching in Redis');
-            await redisClient.set(`chat:${articleId}`, JSON.stringify(chatLog));
+            console.log('Found chat log in MongoDB');
             res.status(200).json(chatLog);
         } else {
-            console.log('Chat log not found for articleId:', articleId);
+            console.log('Chat log not found for userId:', userId, 'articleId:', articleId);
             res.status(404).send({ message: 'Chat log not found.' });
         }
     } catch (error) {
@@ -30,16 +29,21 @@ router.get('/chat/:articleId', async (req, res) => {
     }
 });
 
-router.get('/chathistory', async (req, res) => {
-    console.log('GET /articles - Request received to retrieve all article IDs');
+
+router.get('/chathistory', verifyJWT, async (req, res) => {
+    const userId = req.user.userId; // Access userId from req.user
+    const userEmail = req.user.email; // Access email from req.user
+    console.log('GET /chathistory - Request received to retrieve all chat logs for user');
     try {
-        console.log('Querying MongoDB for all article IDs');
-        const chatLogs = await Chat.find({}, 'articleId'); // Mongoose find
+        console.log(`Querying MongoDB for all chat logs for userId: ${userId}`);
+        // Refactored MongoDB query to include userId
+        const chatLogs = await Chat.find({ userId: userId }, 'articleId');
+
         const articleIds = chatLogs.map(chat => chat.articleId);
-        console.log('Successfully retrieved article IDs');
+        console.log('Successfully retrieved chat logs for user');
         res.status(200).json(articleIds);
     } catch (error) {
-        console.error('GET /articles - Error:', error);
+        console.error('GET /chathistory - Error:', error);
         res.status(500).send({ error: error.message });
     }
 });

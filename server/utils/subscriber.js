@@ -2,54 +2,32 @@ const EventEmitter = require('events');
 class SSEEmitter extends EventEmitter {}
 const sseEmitter = new SSEEmitter();
 const connectRabbitMQ = require('./rabbitmq');
-// const mongoose = require('mongoose');
+
 const Chat = require('../models/chatModel');
+const User = require('../models/UserModel')
 const redisClient = require('./redisClient'); // Adjust the path as necessary
- // Replace with the actual path to your main server file
-// console.log('Redis client in subscriber:', redisClient);
+
+
 const logger = require('./logger');
 
-// async function successHandler(successMessage) {
-//     console.log("in subscribe.js - successHandler: Received success message:", successMessage);
 
-//     // Construct chat object
-//     const chatObject = {
-//         articleId: successMessage.articleId,
-//         chats: [{
-//             timestamp: new Date().toISOString(),
-//             sender: "ai",
-//             message: successMessage.summary
-//         }]
-//     };
-//     console.log("in subscribe.js - successHandler: Constructed chat object:", chatObject);
 
-//     try {
-//         // Save chatObject in MongoDB using Mongoose
-//         console.log("in subscribe.js - successHandler: Saving chat object to MongoDB...");
-//         const newChat = new Chat(chatObject);
-//         await newChat.save();
-//         console.log("in subscribe.js - successHandler: Chat object saved to MongoDB.");
-
-//         // Cache chatObject in Redis
-//         console.log("in subscribe.js - successHandler: Caching chat object in Redis...");
-//         await redisClient.set(`chat:${successMessage.articleId}`, JSON.stringify(chatObject));
-//         console.log("in subscribe.js - successHandler: Chat object cached in Redis.");
-
-//         // Emit the success message to any SSE listeners
-//         console.log("in subscribe.js - successHandler: Emitting success message to SSE listeners.");
-//         sseEmitter.emit('newSummary', successMessage);
-//         console.log("in subscribe.js - successHandler: Success message emitted to SSE listeners.");
-//     } catch (error) {
-//         console.error("in subscribe.js - successHandler: Error:", error);
-//     }
-// }
 async function successHandler(successMessage) {
     console.log("in subscribe.js - successHandler: Received success message:", successMessage);
 
     try {
+        const userId = successMessage.userId;
+        console.log('userid in the successhandler', userId)
+
+        // Find the user by userId
+        const user = await User.findById(userId);
+        if (!user) {
+            throw new Error("User not found");
+        }
+
         // Check if a chat with the same articleId already exists in MongoDB
         console.log("in subscribe.js - successHandler: Checking if chat exists in MongoDB...");
-        let chat = await Chat.findOne({ articleId: successMessage.articleId });
+        let chat = await Chat.findOne({ articleId: successMessage.articleId, userId: user._id });
 
         if (chat) {
             // Update the existing chat
@@ -65,6 +43,7 @@ async function successHandler(successMessage) {
             console.log("in subscribe.js - successHandler: Saving new chat object to MongoDB...");
             chat = new Chat({
                 articleId: successMessage.articleId,
+                userId: user._id,
                 chats: [{
                     timestamp: new Date().toISOString(),
                     sender: "ai",
@@ -72,12 +51,20 @@ async function successHandler(successMessage) {
                 }]
             });
             await chat.save();
+
+            // Add this chat to the user's activeChats if not already present
+            if (!user.activeChats.includes(chat._id)) {
+                user.activeChats.push(chat._id);
+                await user.save();
+            }
         }
+
         console.log("in subscribe.js - successHandler: Chat object saved/updated in MongoDB.");
 
         // Update/Cache chat object in Redis
         console.log("in subscribe.js - successHandler: Caching/Updating chat object in Redis...");
-        await redisClient.set(`chat:${successMessage.articleId}`, JSON.stringify(chat));
+        const userSpecificRedisKey = `user:${userId}:chat:${successMessage.articleId}`;
+        await redisClient.set(userSpecificRedisKey, JSON.stringify(chat));
         console.log("in subscribe.js - successHandler: Chat object cached/updated in Redis.");
 
         // Emit the success message to any SSE listeners
@@ -88,6 +75,7 @@ async function successHandler(successMessage) {
         console.error("in subscribe.js - successHandler: Error:", error);
     }
 }
+
 
 
 async function subscribeToProcessingResults() {
@@ -108,18 +96,27 @@ async function subscribeToProcessingResults() {
     channel.bindQueue(failureQueue.queue, 'failure', '');
     console.log("in subscribe.js - subscribeToProcessingResults: Queues bound to exchanges.");
 
-channel.consume(successQueue.queue, async (msg) => {
-    if (msg.content) {
-        try {
-            console.log("in subscribe.js - subscribeToProcessingResults: Received message in success queue.");
-            const successMessage = JSON.parse(msg.content.toString());
-            console.log("in subscribe.js - subscribeToProcessingResults: Parsed success message:", successMessage);
-            await successHandler(successMessage);
-        } catch (error) {
-            console.error('in subscribe.js - subscribeToProcessingResults: Failed to parse success message content as JSON:', error);
+    channel.consume(successQueue.queue, async (msg) => {
+        if (msg.content) {
+            try {
+                console.log("in subscribe.js - subscribeToProcessingResults: Received message in success queue.");
+                const successMessage = JSON.parse(msg.content.toString());
+                console.log("in subscribe.js - subscribeToProcessingResults: Parsed success message:", successMessage);
+    
+                // Extract userId from the successMessage
+                const { userId } = successMessage;
+                if (!userId) {
+                    throw new Error("UserId is missing in the success message");
+                }
+    
+                // Pass the entire message to the successHandler
+                await successHandler(successMessage);
+            } catch (error) {
+                console.error('in subscribe.js - subscribeToProcessingResults: Error processing message:', error);
+            }
         }
-    }
-}, { noAck: true });
+    }, { noAck: true });
+    
 
 channel.consume(failureQueue.queue, (msg) => {
     if (msg.content) {

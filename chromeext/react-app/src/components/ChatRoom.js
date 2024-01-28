@@ -1,38 +1,29 @@
-import React, {useEffect} from 'react';
+import React, { useEffect } from 'react';
 import { Box, Drawer, List, ListItem, ListItemText, IconButton, Toolbar } from '@mui/material';
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import useChatStore from './chatstore';
 import Chat from './Chat';
-import {BASE_URL, SECURE_TOKEN} from '../buildvars'
+import useHttp from '../hooks/useHttp';
 
 function ChatRoom() {
-    const { isSidebarOpen, toggleSidebar, articleIds, setActiveChatId, activeChatId, getVideoTitle, setVideoTitle } = useChatStore();
+    const { sendRequest } = useHttp();
+    const { isSidebarOpen, toggleSidebar, articleIds, setActiveChatId, activeChatId, setArticleIds } = useChatStore();
     const drawerWidth = 240;
 
-    const fetchAndUpdateTitle = async (articleId) => {
+    const fetchArticleTitles = async () => {
         try {
-            const response = await fetch(`${BASE_URL}/chat/${articleId}`,  {headers: {
-                'securetoken': SECURE_TOKEN
-            }});
-            if (response.ok) {
-                const data = await response.json();
-                if (data && data.title) {
-                    setVideoTitle(articleId, data.title);
-                }
-            }
+            const articleTitles = await sendRequest({ url: `/article-titles` });
+            setArticleIds(articleTitles);
         } catch (error) {
-            console.error('Error fetching video title:', error);
+            console.error('Error fetching article titles:', error);
         }
     };
 
     useEffect(() => {
-        articleIds.forEach(articleId => {
-            fetchAndUpdateTitle(articleId);
-        });
-    }, [articleIds]);
+        fetchArticleTitles();
+    }, []);
 
     const handleChatClick = (articleId) => {
-        console.log("Chat clicked with articleId:", articleId);
         setActiveChatId(articleId);
     };
 
@@ -61,14 +52,11 @@ function ChatRoom() {
                     </IconButton>
                 </Toolbar>
                 <List>
-                    {articleIds.map((articleId, index) => {
-                        const title = getVideoTitle(articleId) || `Chat ${index + 1}: ${articleId}`;
-                        return (
-                            <ListItem button key={articleId} onClick={() => handleChatClick(articleId)}>
-                                <ListItemText primary={title} />
-                            </ListItem>
-                        );
-                    })}
+                    {articleIds.map((article, index) => (
+                        <ListItem button key={article.articleId} onClick={() => handleChatClick(article.articleId)}>
+                            <ListItemText primary={article.title || `Chat ${index + 1}`} />
+                        </ListItem>
+                    ))}
                 </List>
             </Drawer>
             <Box component="main" sx={{ flexGrow: 1, overflow: 'hidden' }}>

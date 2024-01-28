@@ -98,14 +98,14 @@ async function startWorker() {
             if (queue === articleQueue) {
                 result = await processArticle(data);
             } else if (queue === videoSummaryQueue) {
-         const prompt = await generateVideoSummaryPrompt(data);
-         result = await processVideoWithLLM(prompt, data);
+                const prompt = await generateVideoSummaryPrompt(data);
+                result = await processVideoWithLLM(prompt, data);
             }
     
-            // Publish to the success exchange
+            // Include all necessary fields in the successPayload
             const successPayload = JSON.stringify({
-                articleId: data.articleId,
-                summary: result
+                ...data, // Include all original data fields
+                summary: result // Add the new result
             });
             channel.publish(successExchange, '', Buffer.from(successPayload));
     
@@ -123,6 +123,7 @@ async function startWorker() {
             channel.ack(message);
         }
     }
+    
 
     // Consumer for the articles queue
     channel.consume(articleQueue, (message) => handleMessage(message, articleQueue), { noAck: false });

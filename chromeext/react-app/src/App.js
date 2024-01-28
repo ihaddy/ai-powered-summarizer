@@ -4,39 +4,38 @@ import { HashRouter as Router, Routes, Route } from 'react-router-dom';
 import Header from './components/Header';
 import Summarizer from './components/Summarizer';
 import ChatRoom from './components/ChatRoom';
-// Import the store
+import SignIn from './components/SignIn';
+import SignUp from './components/SignUp'; // Import SignUp component
 import useChatStore from './components/chatstore';
-import {BASE_URL, SECURE_TOKEN} from '../src/buildvars'
+import useUserStore from './components/userStore';
+import { BASE_URL, SECURE_TOKEN } from '../src/buildvars';
+import CircularProgress from '@mui/material/CircularProgress'; // Import a loading indicator component
+import useHttp from './hooks/useHttp';
+
 
 function App() {
   const { isSidebarOpen, toggleSidebar, addArticleId, setArticleIds } = useChatStore();
+  
+  const { isAuthenticated, showSignIn, initialize, loading } = useUserStore();
+
+  const { sendRequest } = useHttp();
 
   useEffect(() => {
-    console.log('token: ',SECURE_TOKEN)
-    // Fetch all article IDs when the component mounts
-    fetch(`${BASE_URL}/articles`,{
-    headers: {
-      'securetoken': SECURE_TOKEN
-  }})
-      .then(response => response.json())
-      .then(articleIds => {
-        // Store the retrieved article IDs in the chat store
-        setArticleIds(articleIds); // Replace addArticleId with setArticleIds for setting all at once
-      })
-      .catch(error => {
+    const fetchArticleIds = async () => {
+      try {
+        if (isAuthenticated) {
+          const articleIds = await sendRequest({
+            url: '/articles',
+          });
+          setArticleIds(articleIds);
+        }
+      } catch (error) {
         console.error('Error fetching article IDs:', error);
-      });
+      }
+    };
 
-    // Any other initialization code
-    console.log('React App component mounted');
-  }, [setArticleIds]);
-
-
-  useEffect(() => {
-    console.log('React App component mounted');
-    // Any other initialization code
-  }, []);
-
+    fetchArticleIds();
+  }, [isAuthenticated, sendRequest, setArticleIds]);
 
   useEffect(() => {
     const handleNewArticleId = (message, sender, sendResponse) => {
@@ -45,22 +44,37 @@ function App() {
       }
     };
 
-    // Add listener for messages from the background script
     chrome.runtime.onMessage.addListener(handleNewArticleId);
 
     return () => {
-      // Remove the listener when the component is unmounted
       chrome.runtime.onMessage.removeListener(handleNewArticleId);
     };
   }, [addArticleId]);
-  return (<div>
 
+  useEffect(() => {
+    // Initialize user store
+    initialize();
+  }, [initialize]);
 
+  if (loading) {
+    return (
+      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+        <CircularProgress />
+      </div>
+    );
+  }
 
+  if (!isAuthenticated) {
+    return (
+      <div>
+        {showSignIn ? <SignIn /> : <SignUp />}
+      </div>
+    );
+  }
 
+  return (
     <Router>
       <div>
-        <h1>hello test</h1>
         <Routes>
           <Route path="/" element={<Header showHamburgerMenu={false} handleDrawerToggle={toggleSidebar} />} />
           <Route path="/chat-room" element={<Header showHamburgerMenu={true} handleDrawerToggle={toggleSidebar} />} />
@@ -71,8 +85,7 @@ function App() {
         </Routes>
       </div>
     </Router>
-  </div>);
-
+  );
 }
 
 export default App;

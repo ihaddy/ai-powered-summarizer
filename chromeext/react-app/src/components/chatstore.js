@@ -6,6 +6,10 @@ const useChatStore = create((set, get) => ({
   activeChatId: null,
   chatHistories: {},
   videoTitles: {}, // New state for video titles
+  articles: [], // To store article objects with id and title
+
+  setArticles: (articles) => set({ articles }),
+  getArticle: (articleId) => get().articles.find(article => article.articleId === articleId),
   toggleSidebar: () =>
     set((state) => ({ isSidebarOpen: !state.isSidebarOpen })),
   addArticleId: (articleId) =>

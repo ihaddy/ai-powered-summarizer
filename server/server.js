@@ -2,6 +2,8 @@ const express = require('express');
 const { subscribeToProcessingResults } = require('./utils/subscriber');
 const cors = require('cors');
 
+
+
 const logger = require('./utils/logger'); // Adjust the path as necessary
 
 const loggingMiddleware = (req, res, next) => {
