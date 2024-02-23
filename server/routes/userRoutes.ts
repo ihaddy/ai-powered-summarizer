@@ -1,11 +1,11 @@
-const express = require('express');
-const User = require('../models/UserModel');
-const validator = require('validator');
+import express, { Response } from 'express';
+import User from '../models/UserModel';
+import validator from 'validator';
+import jwt from 'jsonwebtoken'; // make sure jwt is imported
+import { Request } from '../customTypes/request';
 const router = express.Router();
-const jwt = require('jsonwebtoken'); // make sure jwt is imported
 
-
-router.post('/signin', async (req, res) => {
+router.post('/signin', async (req: Request, res: Response) => {
   try {
     const { email, password } = req.body;
 
@@ -19,7 +19,7 @@ router.post('/signin', async (req, res) => {
       return res.status(401).json({ error: 'Authentication failed' });
     }
 
-    const token = jwt.sign({ userId: user._id, email: user.email }, process.env.JWT_SECRET, { expiresIn: '24h' });
+    const token = jwt.sign({ userId: user._id, email: user.email }, process.env.JWT_SECRET as string, { expiresIn: '24h' });
 
     // Include user email (and any other necessary user data) in the response along with the token
     res.json({ user: { email: user.email }, jwtToken: token }); // Adjust based on the data you want to send
@@ -30,7 +30,7 @@ router.post('/signin', async (req, res) => {
 });
 
 
-router.post('/signup', async (req, res) => {
+router.post('/signup', async (req: Request, res: Response) => {
   try {
     const { email, password } = req.body;
 
@@ -58,11 +58,11 @@ router.post('/signup', async (req, res) => {
 
     console.log(`User created: ${email}`);
 
-    const token = jwt.sign({ userId: user._id, email: user.email }, process.env.JWT_SECRET, { expiresIn: '24h' });
+    const token = jwt.sign({ userId: user._id, email: user.email }, process.env.JWT_SECRET as string, { expiresIn: '24h' });
     res.status(201).json({ user: { email: user.email }, jwtToken: token });
   } catch (error) {
     console.error('Signup error:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 });
-module.exports = router;
+export default router;
