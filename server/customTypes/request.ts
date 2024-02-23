@@ -1,0 +1,5 @@
+import { Request as ExpressRequest } from 'express';
+
+export interface Request extends ExpressRequest {
+    user: any; // Define the user property
+}
