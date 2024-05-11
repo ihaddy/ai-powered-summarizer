@@ -1,19 +1,21 @@
-const express = require('express');
-const verifyJWT = require('../utils/verifyJWT'); 
-const { v4: uuidv4 } = require('uuid');
-const Chat = require('../models/chatModel');
-const redisClient = require('../utils/redisClient');
-const router = express.Router();
-const connectRabbitMQ = require('../utils/rabbitmq');
-const axios = require('axios');
-const logger = require('../utils/logger');
+import express, { Response } from 'express';
+import { v4 as uuidv4 } from 'uuid';
+import Chat from '../models/chatModel';
+import redisClient from '../utils/redisClient';
+import connectRabbitMQ from '../utils/rabbitmq';
+import axios from 'axios';
+import logger from '../utils/logger';
+import verifyJWT  from '../utils/verifyJWT';
+import { Request } from '../customTypes/request';
 
-router.post('/summarize-videos',verifyJWT, async (req, res) => {
+const router = express.Router();
+
+router.post('/summarize-videos', verifyJWT, async (req: Request, res: Response) => {
     const userId = req.user.userId; // Access userId from req.user
     const userEmail = req.user.email; // Access email from req.user
     console.log('POST /summarize-videos - Request received:', req.body);
     const videoId = req.body.videoId;
-    let dataToSend = {};
+    let dataToSend: any = {};
 
     try {
         // Refactored Redis cache key to include userId
@@ -76,4 +78,4 @@ router.post('/summarize-videos',verifyJWT, async (req, res) => {
     }
 });
 
-module.exports = router;
+export default router;

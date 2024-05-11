@@ -1,21 +1,21 @@
-const express = require('express');
-const router = express.Router();
-const { v4: uuidv4 } = require('uuid');
-const connectRabbitMQ = require('../utils/rabbitmq');
-const {  sseEmitter } = require('../utils/subscriber');
-const Chat = require('../models/chatModel');
-const verifyJWT = require('../utils/verifyJWT');
-const logger = require('../utils/logger');
+import express, { Request as ExpressRequest, Response, Router } from 'express';
+import { v4 as uuidv4 } from 'uuid';
+import connectRabbitMQ from '../utils/rabbitmq';
+import { sseEmitter } from '../utils/subscriber';
+import Chat from '../models/chatModel';
+import verifyJWT from '../utils/verifyJWT';
+import logger from '../utils/logger';
+import { Request } from '../customTypes/request';
 
 
+const router: Router = express.Router();
 
-
-router.post('/summarize',verifyJWT, async (req, res) => {
-    const userId = req.user.userId; // Access userId from req.user
-    const userEmail = req.user.email; // Access email from req.user
+router.post('/summarize', verifyJWT, async (req: Request, res: Response) => {
+    const userId: string = req.user.userId; // Access userId from req.user
+    const userEmail: string = req.user.email; // Access email from req.user
     console.log('POST /summarize - Request received:', req.body);
-    const article = req.body;
-    const articleId = uuidv4(); 
+    const article: any = req.body;
+    const articleId: string = uuidv4(); 
 
     try {
         // Add userId to the initialChatObject
@@ -25,7 +25,7 @@ router.post('/summarize',verifyJWT, async (req, res) => {
 
         console.log('Connecting to RabbitMQ and sending message to queue');
         const { channel } = await connectRabbitMQ();
-        const queue = 'articles';
+        const queue: string = 'articles';
         await channel.assertQueue(queue, { durable: true });
         // Include userId in the message sent to the queue
         channel.sendToQueue(queue, Buffer.from(JSON.stringify({ userId, userEmail, articleId, ...article })));
@@ -37,9 +37,9 @@ router.post('/summarize',verifyJWT, async (req, res) => {
     }
 });
 
-router.get('/summary_stream/:articleId', verifyJWT, (req, res) => {
-    const userId = req.user.userId; // Access userId from req.user
-    const userEmail = req.user.email; // Access email from req.user
+router.get('/summary_stream/:articleId', verifyJWT, (req: Request, res: Response) => {
+    const userId: string = req.user.userId; // Access userId from req.user
+    const userEmail: string = req.user.email; // Access email from req.user
     console.log(`GET /summary_stream/${req.params.articleId} - SSE connection opened`);
     res.set({
         'Content-Type': 'text/event-stream',
@@ -47,7 +47,7 @@ router.get('/summary_stream/:articleId', verifyJWT, (req, res) => {
         'Connection': 'keep-alive',
     });
 
-    const onNewSummary = (data) => {
+    const onNewSummary = (data: any) => {
         // Ensure that the summary is for the right user
         if (data.articleId === req.params.articleId && data.userId === userId) {
             console.log(`SSE - New summary for userId: ${userId}, articleId: ${req.params.articleId}`);
@@ -63,16 +63,16 @@ router.get('/summary_stream/:articleId', verifyJWT, (req, res) => {
     });
 });
 
-router.get('/articles', verifyJWT, async (req, res) => {
+router.get('/articles', verifyJWT, async (req: Request, res: Response) => {
     console.log('token req: ', req.user)
-    const userId = req.user.userId; // Access userId from req.user
-    const userEmail = req.user.email; // Access email from req.user
+    const userId: string = req.user.userId; // Access userId from req.user
+    const userEmail: string = req.user.email; // Access email from req.user
     console.log(`GET /articles - Request received to retrieve all article IDs for userId: ${userId}`);
     try {
         // Query for articles related to the specific user
         console.log(`Querying MongoDB for all article IDs for userId: ${userId}`);
         const chatLogs = await Chat.find({ userId: userId }, 'articleId');
-        const articleIds = chatLogs.map(chat => chat.articleId);
+        const articleIds: string[] = chatLogs.map((chat: any) => chat.articleId);
         console.log('Successfully retrieved article IDs for user');
         res.status(200).json(articleIds);
     } catch (error) {
@@ -81,16 +81,16 @@ router.get('/articles', verifyJWT, async (req, res) => {
     }
 });
 
-router.get('/article-titles', verifyJWT, async (req, res) => {
-    const userId = req.user.userId;
-    const older = req.query.older || false; // Get the 'older' query parameter
+router.get('/article-titles', verifyJWT, async (req: Request, res: Response) => {
+    const userId: string = req.user.userId;
+    const older: boolean = req.query.older === 'true'; // Get the 'older' query parameter
 
     try {
-        const query = { userId: userId };
+        const query: any = { userId: userId };
         // Add logic for 'older' parameter if needed
-        const articles = await Chat.find(query, 'articleId title').sort({ _id: -1 }).limit(50);
+        const articles: any[] = await Chat.find(query, 'articleId title').sort({ _id: -1 }).limit(20);
 
-        const articleTitles = articles.map(article => ({
+        const articleTitles = articles.map((article: any) => ({
             articleId: article.articleId, 
             title: article.title
         }));
@@ -102,5 +102,4 @@ router.get('/article-titles', verifyJWT, async (req, res) => {
     }
 });
 
-
-module.exports = router;
+export default router;
