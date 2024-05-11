@@ -1,7 +1,7 @@
 module.exports = {
     apps : [{
       name: 'AI-summarizer-express-app',
-      script: 'server.js',
+      script: 'server.ts',
       // Options reference: https://pm2.keymetrics.io/docs/usage/application-declaration/
       instances: 1,
       autorestart: true,

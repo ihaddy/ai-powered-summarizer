@@ -9,10 +9,21 @@ import articleRoutes from './routes/articleRoutes';
 import videoRoutes from './routes/videoRoutes';
 import chatRoutes from './routes/chatRoutes';
 import userRoutes from './routes/userRoutes';
+import { createServer } from 'http';
+import { Server as SocketIOServer } from 'socket.io';
+import registerSocketEvents from './utils/socketEvents';
 
 dotenv.config();
 
 const app = express();
+const httpServer = createServer(app);
+const io = new SocketIOServer(httpServer, {
+  cors: {
+    origin: "*",  // Adjust according to your frontend's origin for security
+    methods: ["GET", "POST"]
+  }
+});
+
 const PORT: string | number = process.env.PORT || 3002;
 
 const loggingMiddleware = (req: Request, res: Response, next: NextFunction) => {
@@ -44,11 +55,12 @@ app.use(videoRoutes);
 app.use(chatRoutes);
 app.use(userRoutes);
 
+registerSocketEvents(io);
+
 async function initializeServer() {
   try {
     logger.info('Connecting to MongoDB', process.env.MONGODB_URI);
-    // await mongoose.connect(process.env.MONGODB_URI!, { useNewUrlParser: true, useUnifiedTopology: true });
-    await mongoose.connect(process.env.MONGODB_URI!);
+    await mongoose.connect(process.env.MONGODB_URI!, { useNewUrlParser: true, useUnifiedTopology: true });
     logger.info('Connected to MongoDB');
 
     redisClient.on('ready', () => {
@@ -56,7 +68,7 @@ async function initializeServer() {
       subscribeToProcessingResults();
     });
 
-    app.listen(PORT, () => logger.info(`Server running on port ${PORT}`));
+    httpServer.listen(PORT, () => logger.info(`Server running on port ${PORT}`));
   } catch (error) {
     logger.info('Failed to connect to databases:', error);
     process.exit(1);
@@ -74,4 +86,4 @@ process.on('unhandledRejection', (reason, promise) => {
 
 initializeServer();
 
-export { redisClient };
+export { redisClient, io }; 
