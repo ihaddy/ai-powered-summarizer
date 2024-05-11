@@ -88,7 +88,7 @@ router.get('/article-titles', verifyJWT, async (req, res) => {
     try {
         const query = { userId: userId };
         // Add logic for 'older' parameter if needed
-        const articles = await Chat.find(query, 'articleId title').sort({ _id: -1 }).limit(20);
+        const articles = await Chat.find(query, 'articleId title').sort({ _id: -1 }).limit(50);
 
         const articleTitles = articles.map(article => ({
             articleId: article.articleId, 

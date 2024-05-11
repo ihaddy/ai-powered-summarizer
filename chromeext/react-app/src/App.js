@@ -8,34 +8,53 @@ import SignIn from './components/SignIn';
 import SignUp from './components/SignUp'; // Import SignUp component
 import useChatStore from './components/chatstore';
 import useUserStore from './components/userStore';
-import { BASE_URL, SECURE_TOKEN } from '../src/buildvars';
 import CircularProgress from '@mui/material/CircularProgress'; // Import a loading indicator component
 import useHttp from './hooks/useHttp';
-
+import useSocketStore from './components/useSocketStore';
 
 function App() {
   const { isSidebarOpen, toggleSidebar, addArticleId, setArticleIds } = useChatStore();
-  
-  const { isAuthenticated, showSignIn, initialize, loading } = useUserStore();
+  const { socket } = useSocketStore();
+
+  const connectSocket = useSocketStore(state => state.connectSocket);
+  const disconnectSocket = useSocketStore(state => state.disconnectSocket);
+
+  const jwtToken = useUserStore(state => state.jwtToken); // Access JWT token from the user store
+
+    useEffect(() => {
+        // Only attempt to connect the socket when jwtToken is available
+        if (jwtToken) {
+            connectSocket(); // Connect when the JWT token is available
+
+            return () => {
+                disconnectSocket(); // Clean up the connection when the component unmounts
+            };
+        }
+    }, [jwtToken, connectSocket, disconnectSocket]);
+
+  const { isAuthenticated, showSignIn, initialize, loading, toggleSignIn } = useUserStore();
 
   const { sendRequest } = useHttp();
 
+
+
   useEffect(() => {
-    const fetchArticleIds = async () => {
-      try {
-        if (isAuthenticated) {
-          const articleIds = await sendRequest({
-            url: '/articles',
-          });
-          setArticleIds(articleIds);
-        }
-      } catch (error) {
-        console.error('Error fetching article IDs:', error);
+    const handleArticleIds = (articleIds) => {
+      console.log('Received article IDs from WebSocket:', articleIds);
+      setArticleIds(articleIds, sendRequest); // Pass sendRequest as an argument
+    };
+  
+    if (socket) {
+      socket.on('all-articles', handleArticleIds);
+    }
+  
+    return () => {
+      if (socket) {
+        socket.off('all-articles', handleArticleIds);
       }
     };
+  }, [socket, sendRequest]);
 
-    fetchArticleIds();
-  }, [isAuthenticated, sendRequest, setArticleIds]);
 
   useEffect(() => {
     const handleNewArticleId = (message, sender, sendResponse) => {
@@ -56,6 +75,8 @@ function App() {
     initialize();
   }, [initialize]);
 
+
+
   if (loading) {
     return (
       <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
@@ -67,7 +88,7 @@ function App() {
   if (!isAuthenticated) {
     return (
       <div>
-        {showSignIn ? <SignIn /> : <SignUp />}
+        {showSignIn ? <SignIn onSwitchToSignUp={toggleSignIn} /> : <SignUp onSwitchToSignIn={toggleSignIn} />}
       </div>
     );
   }

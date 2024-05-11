@@ -1,10 +1,14 @@
 import React, { useEffect } from 'react';
 import useChatStore from './chatstore';
 import useHttp from '../hooks/useHttp';
+import DOMPurify from 'dompurify';
+import { marked } from 'marked';
 
 const Chat = ({ articleId }) => {
     const { getChatHistory, setChatHistory, getArticle } = useChatStore();
     const { sendRequest } = useHttp();
+
+
 
     useEffect(() => {
         const fetchChatHistory = async () => {
@@ -22,19 +26,24 @@ const Chat = ({ articleId }) => {
     }, [articleId, sendRequest, setChatHistory]);
 
     const history = getChatHistory(articleId) || [];
-    const article = getArticle(articleId) || {};
-    const videoTitle = article.title || `Chat History for ${articleId}`
+    const article = getArticle(articleId); 
 
+    const createMarkup = (text) => {
+        const rawMarkup = marked(text);
+        const sanitizedMarkup = DOMPurify.sanitize(rawMarkup);
+        console.log('markedup text', sanitizedMarkup)
+        return { __html: sanitizedMarkup };
+    };
+ 
     return (
         <div style={{ width: '100%', overflow: 'hidden' }}>
-            <h3>Chat History for SUMMARY of "{videoTitle}"</h3>
             <div className="chat-container" style={{ maxHeight: 'calc(100vh - 150px)', overflowY: 'auto' }}>
                 {history.length === 0 ? (
                     <p>No chat history currently available.</p>
                 ) : (
                     history.map((chat, index) => (
                         <div key={index} className={`chat-message ${chat.sender}`}>
-                            <div className="message-content">{chat.message}</div>
+                            <div className="message-content" dangerouslySetInnerHTML={createMarkup(chat.message)}></div>
                             <div className="message-timestamp">{new Date(chat.timestamp).toLocaleTimeString()}</div>
                         </div>
                     ))

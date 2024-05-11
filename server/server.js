@@ -1,9 +1,13 @@
 const express = require('express');
 const { subscribeToProcessingResults } = require('./utils/subscriber');
 const cors = require('cors');
+const { Server } = require('socket.io');
+const http = require('http');
 
+const app = express();
+const server = http.createServer(app); 
 
-
+const registerSocketEvents = require('./utils/socketEvents');
 const logger = require('./utils/logger'); // Adjust the path as necessary
 
 const loggingMiddleware = (req, res, next) => {
@@ -14,11 +18,17 @@ const mongoose = require('mongoose');
 
 const redisClient = require('./utils/redisClient'); // Adjust the path as necessary
 
+// Create an HTTP server.
+const io = new Server(server, {
+    cors: {
+        origin: "*", // Adjust according to your frontend's origin for security
+        methods: ["GET", "POST"],
+    },
+});
 
 
 require('dotenv').config();
 
-const app = express();
 const PORT = process.env.PORT || 3002;
 
 
@@ -71,8 +81,10 @@ async function initializeServer() {
             subscribeToProcessingResults();
         });
 
+        registerSocketEvents(io);
+
         // Start server
-        app.listen(PORT, () => logger.info(`Server running on port ${PORT}`));
+        server.listen(PORT, () => logger.info(`Server running on port ${PORT}`));
     } catch (error) {
         logger.info('Failed to connect to databases:', error);
         process.exit(1);

@@ -1,5 +1,6 @@
 /* global chrome */
 import { create } from 'zustand';
+import useChatStore from './chatstore';
 
 const useUserStore = create(set => ({
   user: null,
@@ -8,7 +9,26 @@ const useUserStore = create(set => ({
   showSignIn: true,
   loading: true, // Add a loading state
   setUser: (user, jwt) => set({ user, jwtToken: jwt, isAuthenticated: true }),
-  logout: () => set({ user: null, jwtToken: null, isAuthenticated: false }),
+  logout: () => {
+    // Clear all data from local storage for the extension
+    chrome.storage.local.clear(() => {
+      console.log('Local storage cleared on logout');
+    });
+
+    // Reset the chat store state
+    useChatStore.setState({
+      isSidebarOpen: true,
+      articleIds: [],
+      activeChatId: null,
+      chatHistories: {},
+      videoTitles: {},
+      articles: [],
+      videos: []
+    });
+
+    // Update Zustand store state
+    set({ user: null, jwtToken: null, isAuthenticated: false, showSignIn: true });
+  },
   toggleSignIn: () => set(state => ({ showSignIn: !state.showSignIn })),
   initialize: async () => {
     // Fetch credentials from local storage
@@ -28,12 +48,7 @@ const useUserStore = create(set => ({
       set({ loading: false }); // Set loading to false if no credentials are found
     }
   },
-  logout: () => {
-    // Clear credentials from local storage
-    chrome.storage.local.remove(['jwtToken', 'userEmail']);
-    // Update Zustand store state
-    set({ user: null, jwtToken: null, isAuthenticated: false });
-  },
+
 }));
 
 export default useUserStore;
