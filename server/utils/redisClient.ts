@@ -1,7 +1,7 @@
-import redis from 'redis';
+import { createClient } from 'redis';
 
 // Create and configure the Redis client
-const client = redis.createClient({
+const client = createClient({
   url: process.env.REDISHOST || 'redis://localhost:6379'
 });
 

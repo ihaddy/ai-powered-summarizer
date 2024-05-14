@@ -5,7 +5,7 @@ import Chat from '../models/chatModel';
 import User from '../models/UserModel';
 import redisClient from './redisClient';
 import logger from './logger';
-import { connectRabbitMQ } from './rabbitmq';
+import connectRabbitMQ from './rabbitmq';
 import axios from 'axios';
 
 class SSEEmitter extends EventEmitter {}

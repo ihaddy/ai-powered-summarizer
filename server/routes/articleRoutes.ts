@@ -1,12 +1,11 @@
-import express, { Request as ExpressRequest, Response, Router } from 'express';
+import express, { Response, Router } from 'express';
 import { v4 as uuidv4 } from 'uuid';
 import connectRabbitMQ from '../utils/rabbitmq';
 import { sseEmitter } from '../utils/subscriber';
 import Chat from '../models/chatModel';
 import verifyJWT from '../utils/verifyJWT';
 import logger from '../utils/logger';
-import { Request } from '../customTypes/request';
-
+import { Request } from '../customTypes/request'; // Ensure you are importing your custom type
 
 const router: Router = express.Router();
 
@@ -57,7 +56,7 @@ router.get('/summary_stream/:articleId', verifyJWT, (req: Request, res: Response
 
     sseEmitter.on('newSummary', onNewSummary);
 
-    req.on('close', () => {
+    (req as any).on('close', () => {
         console.log(`SSE connection closed for userId: ${userId}, articleId: ${req.params.articleId}`);
         sseEmitter.removeListener('newSummary', onNewSummary);
     });

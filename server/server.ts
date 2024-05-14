@@ -3,8 +3,8 @@ import cors from 'cors';
 import mongoose from 'mongoose';
 import dotenv from 'dotenv';
 import { subscribeToProcessingResults } from './utils/subscriber';
-import { logger } from './utils/logger';
-import { redisClient } from './utils/redisClient';
+import logger from './utils/logger';
+import redisClient from './utils/redisClient';
 import articleRoutes from './routes/articleRoutes';
 import videoRoutes from './routes/videoRoutes';
 import chatRoutes from './routes/chatRoutes';
@@ -60,7 +60,7 @@ registerSocketEvents(io);
 async function initializeServer() {
   try {
     logger.info('Connecting to MongoDB', process.env.MONGODB_URI);
-    await mongoose.connect(process.env.MONGODB_URI!, { useNewUrlParser: true, useUnifiedTopology: true });
+    await mongoose.connect(process.env.MONGODB_URI!);
     logger.info('Connected to MongoDB');
 
     redisClient.on('ready', () => {
@@ -86,4 +86,4 @@ process.on('unhandledRejection', (reason, promise) => {
 
 initializeServer();
 
-export { redisClient, io }; 
+export { redisClient, io };
