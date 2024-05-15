@@ -1,13 +1,14 @@
-import * as cdk from '@aws-cdk/core';
-import * as ecsPatterns from '@aws-cdk/aws-ecs-patterns';
-import * as ec2 from '@aws-cdk/aws-ec2';
-import * as ecs from '@aws-cdk/aws-ecs';
+import * as cdk from 'aws-cdk-lib';
+import { Construct } from 'constructs';
+import * as ecsPatterns from 'aws-cdk-lib/aws-ecs-patterns';
+import * as ec2 from 'aws-cdk-lib/aws-ec2';
+import * as ecs from 'aws-cdk-lib/aws-ecs';
 import * as dotenv from 'dotenv';
 
 dotenv.config(); // Load environment variables from .env file
 
 export class ExpressAppStack extends cdk.Stack {
-  constructor(scope: cdk.Construct, id: string, vpc: ec2.IVpc, props?: cdk.StackProps) {
+  constructor(scope: Construct, id: string, vpc: ec2.IVpc, props?: cdk.StackProps) {
     super(scope, id, props);
 
     // Read DNS names from environment variables

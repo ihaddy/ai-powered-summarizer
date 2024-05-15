@@ -9,7 +9,7 @@ import CardActions from '@mui/material/CardActions';
 import Typography from '@mui/material/Typography';
 import Snackbar from '@mui/material/Snackbar';
 import Alert from '@mui/material/Alert';
-import useHttp from '../hooks/useHttp';
+import useHttp from '../../../../shared/hooks/useHttp';
 
 const SignUp = ({ onSwitchToSignIn }) => {
   const [email, setEmail] = useState('');

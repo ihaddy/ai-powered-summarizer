@@ -2,7 +2,8 @@ version: '3'
 services:
   express-app:
     build:
-      context: ./server
+      context: .
+      dockerfile: ./server/Dockerfile
       args:
         NODE_ENV: development
     ports:
@@ -20,12 +21,13 @@ services:
       - ./server:/usr/src/app
     env_file:
       - ./server/.env
-    command: npm run start:dev  
+    command: yarn run start:dev
 
   flask-app:
     build: ./python-youtube-scraper
     volumes:
       - ./python-youtube-scraper:/usr/src/app
+
   redis:
     image: "redis:latest"
     ports:
@@ -42,7 +44,9 @@ services:
       - "15672:15672"
 
   worker:
-    build: ./worker
+    build:
+      context: .
+      dockerfile: ./worker/Dockerfile
     depends_on:
       - rabbitmq
     env_file:

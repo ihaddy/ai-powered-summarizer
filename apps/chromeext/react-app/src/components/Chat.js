@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import useChatStore from './chatstore';
-import useHttp from '../hooks/useHttp';
+import useHttp from '../../../../shared/hooks/useHttp';
 import DOMPurify from 'dompurify';
 import { marked } from 'marked';
 

@@ -9,7 +9,7 @@ import SignUp from './components/SignUp'; // Import SignUp component
 import useChatStore from './components/chatstore';
 import useUserStore from './components/userStore';
 import CircularProgress from '@mui/material/CircularProgress'; // Import a loading indicator component
-import useHttp from './hooks/useHttp';
+import useHttp from '../../../shared/hooks/useHttp';
 import useSocketStore from './components/useSocketStore';
 
 function App() {

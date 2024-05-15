@@ -1,0 +1,16 @@
+{
+    "compilerOptions": {
+      "module": "commonjs",
+      "target": "es2018",
+      "lib": ["es2018"],
+      "resolveJsonModule": true,
+      "esModuleInterop": true,
+      "skipLibCheck": true,
+      "forceConsistentCasingInFileNames": true,
+      "strict": true,
+      "outDir": "lib"
+    },
+    "include": ["**/*.ts"],
+    "exclude": ["node_modules"]
+  }
+  

@@ -1,0 +1,8 @@
+{
+  "name": "deployment-aws-cdk",
+  "version": "1.0.0",
+  "dependencies": {
+    "aws-cdk-lib": "^2.141.0",
+    "constructs": "^10.3.0"
+  }
+}

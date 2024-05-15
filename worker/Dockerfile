@@ -1,19 +1,21 @@
-# Use the official Node.js 16 image.
-# https://hub.docker.com/_/node
+# Use an official Node runtime as the parent image
 FROM node:20
 
-# Create and change to the app directory.
+# Set the working directory in the container
 WORKDIR /usr/src/app
 
-# Copy application dependency manifests to the container image.
-# A wildcard is used to ensure both package.json AND package-lock.json are copied.
-COPY package*.json ./
+# Copy the package.json from the worker directory to the working directory
+COPY worker/package.json ./package.json
+COPY yarn.lock ./yarn.lock
 
-# Install production dependencies.
-RUN npm install --only=production
+# Install any needed packages specified in package.json
+RUN yarn install
 
-# Copy local code to the container image.
-COPY . .
+# Copy the rest of the worker directory contents to the working directory
+COPY worker/ .
+
+# The application's default port
+EXPOSE 3000
 
 # Start the application
-CMD [ "npm", "start" ]
+CMD ["yarn", "start"]

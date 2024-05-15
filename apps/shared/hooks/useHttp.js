@@ -1,7 +1,7 @@
 import { useState, useCallback } from 'react';
 import axios from 'axios';
-import useUserStore from '../components/userStore'; // Adjust the path as needed
-import { BASE_URL, SECURE_TOKEN } from '../buildvars'; // Adjust the path as needed
+import useUserStore from '../../chromeext/react-app/src/components/userStore'; // Adjust the path as needed
+import { BASE_URL, SECURE_TOKEN } from '../../chromeext/react-app/src/buildvars'; // Adjust the path as needed
 
 const useHttp = () => {
   const jwtToken = useUserStore(state => state.jwtToken); // Directly using jwtToken

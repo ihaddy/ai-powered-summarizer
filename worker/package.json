@@ -1,5 +1,5 @@
 {
-    "name": "worker-app",
+    "name": "worker",
     "type": "module",
     "version": "1.0.0",
     "description": "Worker service for processing RabbitMQ queue messages",

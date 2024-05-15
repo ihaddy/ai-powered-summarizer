@@ -1,12 +1,24 @@
 {
+  "private": true,
+  "name": "ai-powered-summarizer",
+  "version": "1.0.0",
+  "main": "index.js",
+  "repository": "https://github.com/ihaddy/ai-powered-summarizer.git",
+  "author": "",
+  "license": "MIT",
+  "workspaces": [
+    "apps/*",
+    "server",
+    "worker",
+    "deployment-AWS-CDK"
+  ],
   "dependencies": {
-    "@aws-cdk/aws-ec2": "^1.204.0",
-    "@aws-cdk/aws-ecs": "^1.204.0",
-    "@aws-cdk/aws-ecs-patterns": "^1.204.0",
-    "copy-webpack-plugin": "^12.0.2"
+    "copy-webpack-plugin": "^12.0.2",
+    "dotenv": "^10.0.0"
   },
   "devDependencies": {
     "@babel/preset-react": "^7.24.1",
-    "@types/dotenv": "^8.2.0"
+    "@types/dotenv": "^8.2.0",
+    "typescript": "^4.5.2"
   }
 }
