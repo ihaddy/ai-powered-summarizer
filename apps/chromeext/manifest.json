@@ -4,7 +4,7 @@
     "version": "1.0",
     "description": "Submit text to be summarized by a backend service.",
     "permissions": ["activeTab", "storage"],
-    "host_permissions": ["WILL-BE-REPLACED-BY-SETUP-CHROMEEXTENSION-SCRIPT"],
+    "host_permissions": ["https://ai.paragoncloudconsulting.com/"],
     "action": {
         
         "default_icon": {

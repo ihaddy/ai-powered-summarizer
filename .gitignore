@@ -27,5 +27,5 @@ node_modules/
 
 **/config*
 **/buildvars*
-**/post_build_copy.sh
+**/**/post_build_copy.sh
 **/ai-powered-summarizer/chromeext/manifest.json

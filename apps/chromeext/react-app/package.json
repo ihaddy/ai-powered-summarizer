@@ -21,7 +21,7 @@
     "prestart": "node src/createBuildVars.js",
     "start": "PORT=3001 webpack-dev-server --mode development --open",
     "prebuild": "node src/createBuildVars.js",
-    "build": "webpack --mode production && rsync -av --exclude='manifest.json' ./build/ ../"
+    "build": "webpack --mode production"
   },
   "browserslist": {
     "production": [

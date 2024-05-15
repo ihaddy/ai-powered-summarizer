@@ -4,10 +4,10 @@
 ROOT_DIR="$(dirname "$0")"
 ABS_ROOT_DIR="$PWD"
 ENV_FILE="$ROOT_DIR/.env"
-CONFIG_JS="$ROOT_DIR/chromeext/config.js"
-MANIFEST_JSON="$ROOT_DIR/chromeext/manifest.json"
+CONFIG_JS="$ROOT_DIR/apps/chromeext/config.js"
+MANIFEST_JSON="$ROOT_DIR/apps/chromeext/manifest.json"
 TEMP_MANIFEST="$ROOT_DIR/temp_manifest.json"
-REACT_APP_DIR="$ROOT_DIR/chromeext/react-app"
+REACT_APP_DIR="$ROOT_DIR/apps/chromeext/react-app"
 
 # Echo paths for debugging
 echo "ENV_FILE path: $ENV_FILE"
@@ -65,18 +65,18 @@ fi
 echo "React app build complete."
 
 # Define the absolute path for the chromeext directory
-ZIP_ABSOLUTE_PATH="$(realpath "$ROOT_DIR/chromeext")"
+ZIP_ABSOLUTE_PATH="$(realpath "$ROOT_DIR/apps/chromeext")"
 
 # Define the absolute path for the directory to exclude
 EXCLUDE_PATH="$ZIP_ABSOLUTE_PATH/react-app/*"
 cd "$ABS_ROOT_DIR"
 # Zip the chromeext directory excluding react-app
-echo "Zipping Chrome Extension..."
-if ! tar -czvf "$PWD/chromeext.zip" --exclude="$PWD/chromeext/react-app" "$PWD/chromeext"; then
-    echo "Failed to zip the Chrome Extension"
-    exit 1
-fi
-echo "Chrome Extension zipped as $PWD/chromeext.zip"
+# echo "Zipping Chrome Extension..."
+# if ! tar -czvf "$PWD/chromeext.zip" --exclude="$PWD/apps/chromeext/react-app" "$PWD/apps/chromeext"; then
+#     echo "Failed to zip the Chrome Extension"
+#     exit 1
+# fi
+# echo "Chrome Extension zipped as $PWD/chromeext.zip"
 
 # Check if post-build-copy is set to true
 if [ "${postbuildcopy}" = "true" ]; then

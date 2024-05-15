@@ -1,9 +1,9 @@
 # File paths
 $ROOT_DIR = Split-Path -Parent -Path $MyInvocation.MyCommand.Definition
 $ENV_FILE = "$ROOT_DIR/.env"
-$CONFIG_JS = "$ROOT_DIR/chromeext/config.js"
-$MANIFEST_JSON = "$ROOT_DIR/chromeext/manifest.json"
-$REACT_APP_DIR = "$ROOT_DIR/chromeext/react-app"
+$CONFIG_JS = "$ROOT_DIR/apps/chromeext/config.js"
+$MANIFEST_JSON = "$ROOT_DIR/apps/chromeext/manifest.json"
+$REACT_APP_DIR = "$ROOT_DIR/apps/chromeext/react-app"
 
 # Echo paths for debugging
 Write-Host "ENV_FILE path: $ENV_FILE"
@@ -39,10 +39,9 @@ npm run build
 
 Write-Host "React app build complete."
 
-
 # Zip the chromeext directory excluding react-app
-Write-Host "Zipping Chrome Extension..."
-Set-Location $ROOT_DIR
-Remove-Item -Path "$ROOT_DIR/chromeext.zip" -ErrorAction Ignore
-Compress-Archive -Path "$ROOT_DIR/chromeext/*" -DestinationPath "$ROOT_DIR/chromeext.zip" -Exclude "chromeext/react-app/*"
-Write-Host "Chrome Extension zipped as chromeext.zip"
+# Write-Host "Zipping Chrome Extension..."
+# Set-Location $ROOT_DIR
+# Remove-Item -Path "$ROOT_DIR/chromeext.zip" -ErrorAction Ignore
+# Compress-Archive -Path "$ROOT_DIR/apps/chromeext/*" -DestinationPath "$ROOT_DIR/chromeext.zip" -Exclude "$ROOT_DIR/apps/chromeext/react-app/*"
+# Write-Host "Chrome Extension zipped as chromeext.zip"
