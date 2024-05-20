@@ -1,5 +1,4 @@
 import { create } from "zustand";
-import useHttp from '../../../../shared/hooks/useHttp';
 
 const useChatStore = create((set, get) => ({
   isSidebarOpen: true,

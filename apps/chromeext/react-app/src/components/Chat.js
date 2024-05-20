@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import useChatStore from './chatstore';
+import useChatStore from '../../../../shared/stores/chatstore'
 import useHttp from '../../../../shared/hooks/useHttp';
 import DOMPurify from 'dompurify';
 import { marked } from 'marked';

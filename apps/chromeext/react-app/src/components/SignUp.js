@@ -1,15 +1,15 @@
 /* global chrome */
-import React, { useState } from 'react';
-import useUserStore from './userStore';
-import Card from '@mui/material/Card';
-import CardContent from '@mui/material/CardContent';
-import TextField from '@mui/material/TextField';
-import Button from '@mui/material/Button';
-import CardActions from '@mui/material/CardActions';
-import Typography from '@mui/material/Typography';
-import Snackbar from '@mui/material/Snackbar';
 import Alert from '@mui/material/Alert';
+import Button from '@mui/material/Button';
+import Card from '@mui/material/Card';
+import CardActions from '@mui/material/CardActions';
+import CardContent from '@mui/material/CardContent';
+import Snackbar from '@mui/material/Snackbar';
+import TextField from '@mui/material/TextField';
+import Typography from '@mui/material/Typography';
+import React, { useState } from 'react';
 import useHttp from '../../../../shared/hooks/useHttp';
+import useUserStore from '../../../../shared/stores/userStore';
 
 const SignUp = ({ onSwitchToSignIn }) => {
   const [email, setEmail] = useState('');

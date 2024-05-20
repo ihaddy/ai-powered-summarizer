@@ -1,8 +1,8 @@
-import React, { useState, useCallback, useEffect } from 'react';
+import { Box, Button, CircularProgress, Container, TextareaAutosize } from '@mui/material';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { Container, Box, TextareaAutosize, Button, CircularProgress } from '@mui/material';
-import useStore from './summarizerstore'
-import {BASE_URL} from '../buildvars'
+import React, { useCallback, useEffect, useState } from 'react';
+import useStore from '../../../../shared/stores/summarizerstore';
+import { BASE_URL } from '../buildvars';
 
 function Summarizer() {
 

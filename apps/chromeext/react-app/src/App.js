@@ -1,16 +1,16 @@
 /* global chrome */
+import CircularProgress from '@mui/material/CircularProgress'; // Import a loading indicator component
 import React, { useEffect } from 'react';
-import { HashRouter as Router, Routes, Route } from 'react-router-dom';
-import Header from './components/Header';
-import Summarizer from './components/Summarizer';
+import { Route, HashRouter as Router, Routes } from 'react-router-dom';
+import useHttp from '../../../shared/hooks/useHttp';
+import useChatStore from '../../../shared/stores/chatstore';
+import useSocketStore from '../../../shared/stores/useSocketStore';
+import useUserStore from '../../../shared/stores/userStore';
 import ChatRoom from './components/ChatRoom';
+import Header from './components/Header';
 import SignIn from './components/SignIn';
 import SignUp from './components/SignUp'; // Import SignUp component
-import useChatStore from './components/chatstore';
-import useUserStore from './components/userStore';
-import CircularProgress from '@mui/material/CircularProgress'; // Import a loading indicator component
-import useHttp from '../../../shared/hooks/useHttp';
-import useSocketStore from './components/useSocketStore';
+import Summarizer from './components/Summarizer';
 
 function App() {
   const { isSidebarOpen, toggleSidebar, addArticleId, setArticleIds } = useChatStore();

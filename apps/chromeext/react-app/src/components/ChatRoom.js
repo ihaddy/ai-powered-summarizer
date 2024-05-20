@@ -1,8 +1,8 @@
 
-import React from 'react';
-import { Box, Drawer, List, ListItem, ListItemText, IconButton, Toolbar, CircularProgress } from '@mui/material';
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
-import useChatStore from './chatstore';
+import { Box, CircularProgress, Drawer, IconButton, List, ListItem, ListItemText, Toolbar } from '@mui/material';
+import React from 'react';
+import useChatStore from '../../../../shared/stores/chatstore';
 import Chat from './Chat';
 
 function ChatRoom() {
