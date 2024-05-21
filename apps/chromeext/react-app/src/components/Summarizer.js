@@ -1,7 +1,7 @@
 import { Box, Button, CircularProgress, Container, TextareaAutosize } from '@mui/material';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import React, { useCallback, useEffect, useState } from 'react';
-import useStore from '../../../../shared/stores/summarizerstore';
+import useStore from '../summarizerstore';
 import { BASE_URL } from '../buildvars';
 
 function Summarizer() {
@@ -15,7 +15,7 @@ function Summarizer() {
       const response = await fetch(`${BASE_URL}/summarize`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ content: textInput }),
+        body: JSON.stringify({ content: textInBput }),
       });
       if (!response.ok) {
         throw new Error('Network response was not ok');

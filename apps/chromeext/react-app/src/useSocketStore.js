@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import io from 'socket.io-client';
-import { BASE_URL } from '../../chromeext/react-app/src/buildvars';
+import { BASE_URL } from './buildvars';
 import useChatStore from './chatstore'; // Importing useChatStore to update video titles
 import useUserStore from './userStore'; // Importing useUserStore to access JWT
 

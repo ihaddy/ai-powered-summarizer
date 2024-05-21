@@ -52,8 +52,8 @@ async function successHandler(successMessage: any) {
             await chat.save();
 
             // Add this chat to the user's activeChats if not already present
-            if (!user.activeChats.includes(chat._id)) {
-                user.activeChats.push(chat._id);
+            if (!user.activeChats.includes(chat._id.toString())) {
+                user.activeChats.push(chat._id.toString());
                 await user.save();
             }
         }
@@ -93,7 +93,7 @@ async function subscribeToProcessingResults() {
     channel.bindQueue(failureQueue.queue, 'failure', '');
     console.log("in subscribe.ts - subscribeToProcessingResults: Queues bound to exchanges.");
 
-    channel.consume(successQueue.queue, async (msg) => {
+    channel.consume(successQueue.queue, async (msg: any) => {
         if (msg.content) {
             try {
                 console.log("in subscribe.ts - subscribeToProcessingResults: Received message in success queue.");
@@ -115,7 +115,7 @@ async function subscribeToProcessingResults() {
     }, { noAck: true });
     
 
-    channel.consume(failureQueue.queue, (msg) => {
+    channel.consume(failureQueue.queue, (msg: any) => {
         if (msg.content) {
             try {
                 console.log("in subscribe.ts - subscribeToProcessingResults: Received message in failure queue.");

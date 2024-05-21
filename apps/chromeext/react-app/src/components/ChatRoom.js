@@ -2,7 +2,7 @@
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import { Box, CircularProgress, Drawer, IconButton, List, ListItem, ListItemText, Toolbar } from '@mui/material';
 import React from 'react';
-import useChatStore from '../../../../shared/stores/chatstore';
+import useChatStore from '../chatstore';
 import Chat from './Chat';
 
 function ChatRoom() {

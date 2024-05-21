@@ -4,8 +4,6 @@ services:
     build:
       context: .
       dockerfile: ./server/Dockerfile
-      args:
-        NODE_ENV: development
     ports:
       - "3002:3002"
     depends_on:
@@ -19,6 +17,7 @@ services:
       - RABBITMQ_URL=amqp://rabbitmq
     volumes:
       - ./server:/usr/src/app
+      - /usr/src/app/node_modules
     env_file:
       - ./server/.env
     command: yarn run start:dev

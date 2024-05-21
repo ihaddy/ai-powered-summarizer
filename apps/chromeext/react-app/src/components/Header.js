@@ -2,7 +2,7 @@ import MenuIcon from '@mui/icons-material/Menu';
 import { AppBar, Button, IconButton, Toolbar, Typography, useTheme } from '@mui/material';
 import React from 'react';
 import { Link as RouterLink, useLocation } from 'react-router-dom';
-import useUserStore from '../../../../shared/stores/userStore'; // Adjust the path to your actual file location
+import useUserStore from '../userStore'; // Adjust the path to your actual file location
 
 function Header({ handleDrawerToggle }) {
   const location = useLocation();

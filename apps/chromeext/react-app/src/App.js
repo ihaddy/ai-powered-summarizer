@@ -2,10 +2,10 @@
 import CircularProgress from '@mui/material/CircularProgress'; // Import a loading indicator component
 import React, { useEffect } from 'react';
 import { Route, HashRouter as Router, Routes } from 'react-router-dom';
-import useHttp from '../../../shared/hooks/useHttp';
-import useChatStore from '../../../shared/stores/chatstore';
-import useSocketStore from '../../../shared/stores/useSocketStore';
-import useUserStore from '../../../shared/stores/userStore';
+import useHttp from './useHttp';
+import useChatStore from './chatstore';
+import useSocketStore from './useSocketStore';
+import useUserStore from './userStore';
 import ChatRoom from './components/ChatRoom';
 import Header from './components/Header';
 import SignIn from './components/SignIn';

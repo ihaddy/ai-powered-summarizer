@@ -8,8 +8,8 @@ import Snackbar from '@mui/material/Snackbar';
 import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
 import React, { useState } from 'react';
-import useHttp from '../../../../shared/hooks/useHttp';
-import useUserStore from '../../../../shared/stores/userStore';
+import useHttp from '../useHttp';
+import useUserStore from '../userStore';
 
 const SignUp = ({ onSwitchToSignIn }) => {
   const [email, setEmail] = useState('');

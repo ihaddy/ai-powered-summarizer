@@ -4,14 +4,13 @@ FROM node:20
 # Set the working directory in the container
 WORKDIR /usr/src/app
 
-# Copy the package.json and yarn.lock files
-COPY server/package.json  ./
+# Copy the entire server directory including package.json
+COPY server/ ./
 
-# Install dependencies
+# Copy the yarn.lock from the project root
+# Change to the server directory and install dependencies
+WORKDIR /usr/src/app/
 RUN yarn install
-
-# Copy the rest of the server project files
-COPY server/ .
 
 # Set the environment to development
 ENV NODE_ENV=development
