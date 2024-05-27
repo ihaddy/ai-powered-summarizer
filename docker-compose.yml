@@ -53,4 +53,5 @@ services:
     environment:
       - RABBITMQ_URL=amqp://rabbitmq
     volumes:
-      - ./worker:/usr/src/worker
+      - ./worker:/usr/src/app
+      - /usr/src/app/node_modules

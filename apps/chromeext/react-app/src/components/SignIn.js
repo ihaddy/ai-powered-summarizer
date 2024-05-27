@@ -11,6 +11,9 @@ import React, { useState } from 'react';
 import useHttp from '../useHttp';
 import useUserStore from '../userStore';
 
+// TODO: right now there's a bug since the websocket refactor that if i start or stop the server
+// the client doesn't know to auth again, and nothing in the mobile app or CE
+// tell it to try and resubmit the JWT via websockets i think so it just bugs out
 const SignIn = ({ onSignInSuccess, onSwitchToSignUp }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');

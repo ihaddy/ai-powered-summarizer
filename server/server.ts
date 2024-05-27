@@ -62,12 +62,12 @@ async function initializeServer() {
     logger.info('Connecting to MongoDB', process.env.MONGODB_URI);
     await mongoose.connect(process.env.MONGODB_URI!);
     logger.info('Connected to MongoDB');
-
+    await redisClient.connect();
     redisClient.on('ready', () => {
       logger.info('Redis client ready, now subscribing to processing results.');
-      subscribeToProcessingResults();
     });
-
+    
+    subscribeToProcessingResults();
     httpServer.listen(PORT, () => logger.info(`Server running on port ${PORT}`));
   } catch (error) {
     logger.info('Failed to connect to databases:', error);
