@@ -8,7 +8,9 @@ interface CustomSocket extends Socket {
         userId: string;
     };
 }
-
+//TODO: dont have user isolation on all socket events, need to make sure things are properly
+//  joining their individual rooms and emitting to their individual user based rooms
+// need to do the same to all microservices that are broadcastin/joining rooms
 export default function registerSocketEvents(io: Server): void {
     // Apply the JWT verification middleware
     io.use((socket: CustomSocket, next: (err?: ExtendedError) => void) => verifySocketToken(socket, next));
@@ -27,7 +29,7 @@ export default function registerSocketEvents(io: Server): void {
             console.error('Error fetching articles:', error);
             socket.emit('error', 'Failed to fetch articles');
         }
-
+        
         socket.on('joinRoom', (roomId: string) => {
             console.log(`Socket ${socket.id} joining room ${roomId}`);
             socket.join(roomId);

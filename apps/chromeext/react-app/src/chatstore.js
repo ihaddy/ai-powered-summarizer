@@ -78,6 +78,13 @@ setArticleIds: async (articleIds, sendRequest) => {
   console.log('Setting articleIds:', articleIds);
   set({ articleIds });
 },
+addVideo: (video) => {
+  set((state) => {
+    const updatedArticles = [video, ...state.articles];
+    localStorage.setItem('articles', JSON.stringify(updatedArticles));
+    return { articles: updatedArticles };
+  });
+},
 
 getChatHistory: (articleId) => get().chatHistories[articleId],
   setVideoTitle: (articleId, title) => set((state) => ({ videoTitles: { ...state.videoTitles, [articleId]: title }})),

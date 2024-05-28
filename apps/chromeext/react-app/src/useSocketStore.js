@@ -26,7 +26,16 @@ const useSocketStore = create((set, get) => ({
         socket.on('connect', () => {
             console.log('Connected to socket server with authentication');
         });
-
+        socket.on('newVideoSummarized', (data) => {
+            console.log(
+                'one new video summarized:', data
+            )
+            const { videoName, videoId } = data;
+            useChatStore.getState().addVideo({
+              articleId: videoId,
+              title: videoName,
+            });
+          });
         socket.on('all-videos', (videos) => {
             const currentVideos = localStorage.getItem('videoTitles');
             const newVideos = JSON.stringify(videos);
