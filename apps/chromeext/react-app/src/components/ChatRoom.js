@@ -14,10 +14,12 @@ function ChatRoom() {
 
   // UseEffect to control the loading spinner based on articles data
   React.useEffect(() => {
-    if (articles.length > 0) {
+    console.log('Articles state updated:', articles);
+    if (articles !== null) {
       setIsLoading(false);
     }
   }, [articles]);
+
 
   const handleChatClick = (articleId) => {
     console.log('Setting active chat ID:', articleId);
@@ -56,7 +58,7 @@ function ChatRoom() {
               <CircularProgress />
             </Box>
           ) : (
-            articles.map((article, index) => (
+            Array.isArray(articles) && articles.map((article, index) => (
               <ListItem button key={article.articleId} onClick={() => handleChatClick(article.articleId)}>
                 <ListItemText primary={article.title || `Chat ${index + 1}`} />
               </ListItem>

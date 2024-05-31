@@ -8,6 +8,7 @@ export interface IChat extends Document {
     description: string;
     transcript: string;
     videoId: string;
+    thumbnail: string;
   }
 
   const chatSchema: Schema = new Schema({

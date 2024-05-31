@@ -7,9 +7,11 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from chromedriver_autoinstaller import install as install_chrome_driver
 import time
+
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+
 install_chrome_driver()
 
 app = Flask(__name__)
@@ -20,8 +22,7 @@ def scrape_video(video_id):
     chrome_options.add_argument("--no-sandbox")  # Bypass OS security model, REQUIRED on Linux
     chrome_options.add_argument("--disable-dev-shm-usage")  # Overcome limited resource problems
     driver = webdriver.Chrome(options=chrome_options)
-
-    result = {"title": "", "description": "", "transcript": ""}
+    result = {"title": "", "description": "", "transcript": "", "thumbnail": ""}
 
     try:
         transcript = YouTubeTranscriptApi.get_transcript(video_id)
@@ -32,21 +33,18 @@ def scrape_video(video_id):
     try:
         driver.get(f'https://www.youtube.com/watch?v={video_id}')
         driver.execute_script("document.body.style.zoom='0.9'")
-
         more_button = WebDriverWait(driver, 10).until(
             EC.element_to_be_clickable((By.ID, "expand"))
         )
         time.sleep(2)
         driver.execute_script("arguments[0].click();", more_button)
         time.sleep(1)
-
         video_description_element = WebDriverWait(driver, 10).until(
             EC.presence_of_element_located((By.CSS_SELECTOR, '#description-inline-expander > yt-attributed-string > span'))
         )
-
-        result["title"] = driver.title
+        result["title"] = driver.title.replace("- YouTube", "").strip()
         result["description"] = video_description_element.text
-
+        result["thumbnail"] = f"https://img.youtube.com/vi/{video_id}/maxresdefault.jpg"
     except Exception as e:
         result["error"] = f"Error scraping video page: {str(e)}"
     finally:
