@@ -17,7 +17,7 @@ const verifyJWT = (req: Request, res: Response, next: NextFunction) => {
         // Remove the first console.log as it would always be undefined at that point
         const decoded: any = jwt.verify(token, process.env.JWT_SECRET as string);
         (req as any).user = decoded;
-        console.log('token received correctly: ', (req as any).user);
+        // console.log('token received correctly: ', (req as any).user);
         next();
     } catch (error) {
         res.status(400).send("Invalid Token");

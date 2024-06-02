@@ -55,3 +55,12 @@ services:
     volumes:
       - ./worker:/usr/src/app
       - /usr/src/app/node_modules
+
+  meilisearch:
+    image: getmeili/meilisearch:latest
+    ports:
+      - "7700:7700"
+    volumes:
+      - /meilisearch/meili_data:/meili_data
+    env_file:
+      - ./meilisearch/.env

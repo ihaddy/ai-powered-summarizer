@@ -82,19 +82,30 @@ router.get('/articles', verifyJWT, async (req: Request, res: Response) => {
 
 router.get('/article-titles', verifyJWT, async (req: Request, res: Response) => {
     const userId: string = req.user.userId;
-    const older: boolean = req.query.older === 'true'; // Get the 'older' query parameter
+    const page: number = parseInt(req.query.page as string) || 1; // Get the 'page' query parameter, default to 1
+    const limit: number = 10; // Number of articles per page
 
     try {
+        const skip: number = (page - 1) * limit; // Calculate the number of articles to skip based on the page number
+
         const query: any = { userId: userId };
-        // Add logic for 'older' parameter if needed
-        const articles: any[] = await Chat.find(query, 'articleId title').sort({ _id: -1 }).limit(20);
+        const totalCount: number = await Chat.countDocuments(query); // Get the total count of articles for the user
+
+        const articles: any[] = await Chat.find(query, 'articleId title')
+            .sort({ _id: -1 })
+            .skip(skip)
+            .limit(limit);
 
         const articleTitles = articles.map((article: any) => ({
-            articleId: article.articleId, 
+            articleId: article.articleId,
             title: article.title
         }));
 
-        res.status(200).json(articleTitles);
+        res.status(200).json({
+            articles: articleTitles,
+            currentPage: page,
+            totalPages: Math.ceil(totalCount / limit)
+        });
     } catch (error) {
         console.error('Error:', error);
         res.status(500).send({ error: error.message });

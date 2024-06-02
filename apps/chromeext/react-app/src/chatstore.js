@@ -9,6 +9,8 @@ const useChatStore = create((set, get) => ({
   articles: null,
   videos: [], 
   thumbnails: {}, // New state for article thumbnails
+  currentPage: 1,
+  setCurrentPage: (page) => set({ currentPage: page }),
 
   setVideos: (videos) => set({ videos }),
 
@@ -34,7 +36,7 @@ const useChatStore = create((set, get) => ({
     return { chatHistories: { ...state.chatHistories, [articleId]: history }};
   }),
 
-  setArticleIds: async (articleIds, sendRequest) => {
+  setArticleIds: async (mergedArticles, currentPage, totalPages, sendRequest) => {
     const initializeStateFromLocalStorage = () => {
       const cachedArticles = localStorage.getItem('articles');
       if (cachedArticles) {
@@ -46,45 +48,48 @@ const useChatStore = create((set, get) => ({
         set({ loading: true });
       }
     };
-
+  
     const fetchAndCompareArticles = async () => {
       try {
         console.log('Sending request to fetch article titles');
-        const fetchedArticles = await sendRequest({ url: `/article-titles` });
+        const fetchedArticles = await sendRequest({ url: `/article-titles?page=${currentPage}` });
         console.log('Fetched article titles:', fetchedArticles);
-
-        const localArticles = JSON.parse(localStorage.getItem('articles') || '[]');
-        console.log('Local articles:', localArticles);
-
-        if (JSON.stringify(fetchedArticles) !== JSON.stringify(localArticles)) {
-          console.log('Fetched articles are different from local articles');
-          console.log('Updating state and localStorage with new articles');
-          localStorage.setItem('articles', JSON.stringify(fetchedArticles));
-          set({ articles: fetchedArticles });
-        } else {
-          console.log('Fetched articles are the same as local articles, no update needed');
-        }
+  
+        console.log('Updating state and localStorage with merged articles');
+        localStorage.setItem('articles', JSON.stringify({
+          articles: mergedArticles,
+          currentPage: currentPage,
+          totalPages: totalPages
+        }));
+        set({
+          articles: {
+            articles: mergedArticles,
+            currentPage: currentPage,
+            totalPages: totalPages
+          },
+          loading: false
+        });
       } catch (error) {
         console.error('Error fetching article titles:', error);
-      } finally {
-        console.log('Setting loading to false');
         set({ loading: false });
       }
     };
-
+  
     console.log('Initializing state from local storage');
     initializeStateFromLocalStorage();
-
+  
     console.log('Fetching and comparing articles');
     await fetchAndCompareArticles();
-
-    console.log('Setting articleIds:', articleIds);
-    set({ articleIds });
+  
+    console.log('Setting articleIds:', mergedArticles.map(article => article.articleId));
+    set({ articleIds: mergedArticles.map(article => article.articleId) });
   },
-
   addVideo: (video) => {
     set((state) => {
-      const updatedArticles = [video, ...state.articles];
+      const updatedArticles = {
+        ...state.articles,
+        articles: [video, ...(state.articles?.articles || [])],
+      };
       localStorage.setItem('articles', JSON.stringify(updatedArticles));
       return { articles: updatedArticles };
     });

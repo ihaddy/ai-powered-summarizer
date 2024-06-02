@@ -34,26 +34,31 @@ function App() {
 
   const { isAuthenticated, showSignIn, initialize, loading, toggleSignIn } = useUserStore();
 
+
   const { sendRequest } = useHttp();
-
-
+  const setSendRequest = useSocketStore(state => state.setSendRequest);
 
   useEffect(() => {
-    const handleArticleIds = (articleIds) => {
-      console.log('Received article IDs from WebSocket:', articleIds);
-      setArticleIds(articleIds, sendRequest); // Pass sendRequest as an argument
-    };
+    setSendRequest(sendRequest);
+  }, [sendRequest, setSendRequest]);
+
   
-    if (socket) {
-      socket.on('all-articles', handleArticleIds);
-    }
-  
-    return () => {
-      if (socket) {
-        socket.off('all-articles', handleArticleIds);
-      }
-    };
-  }, [socket, sendRequest]);
+  // useEffect(() => {
+  //   const handleArticles = ({ page, articles }) => {
+  //     console.log(`Received articles for page ${page} from WebSocket:`, articles);
+  //     setArticleIds(articles, page, sendRequest);
+  //   };
+
+  //   if (socket) {
+  //     socket.on('articles', handleArticles);
+  //   }
+
+  //   return () => {
+  //     if (socket) {
+  //       socket.off('articles', handleArticles);
+  //     }
+  //   };
+  // }, [socket, sendRequest]);
 
 
   useEffect(() => {
