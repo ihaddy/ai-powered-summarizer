@@ -10,6 +10,9 @@ const useChatStore = create((set, get) => ({
   videos: [], 
   thumbnails: {}, // New state for article thumbnails
   currentPage: 1,
+  searchResults: null,
+  setSearchResults: (results) => set({ searchResults: results }),
+  clearSearchResults: () => set({ searchResults: null }),
   setCurrentPage: (page) => set({ currentPage: page }),
 
   setVideos: (videos) => set({ videos }),

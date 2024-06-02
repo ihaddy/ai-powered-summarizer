@@ -2,6 +2,7 @@ import { Server, Socket } from 'socket.io';
 import { ExtendedError } from 'socket.io/dist/namespace';
 import Chat from '../models/chatModel';
 import verifySocketToken from './verifySocketJWT';
+import { index } from '../utils/meiliSearch';
 
 interface CustomSocket extends Socket {
     user?: {
@@ -52,6 +53,25 @@ export default function registerSocketEvents(io: Server): void {
             console.log(`Summary processed for video: ${data.videoId}`);
             io.to(data.roomId).emit('summary-update', { videoId: data.videoId, summary: data.summary });
         });
+
+        socket.on('searchMessages', async (term: string) => {
+          try {
+            const { userId } = socket.user;
+            console.log('userId on search', userId);
+            console.log('term', term);
+            
+            const searchResults = await index.search(term, {
+              filter: `userId = "${userId}"`
+            });
+            
+            console.log(`Search results: ${JSON.stringify(searchResults.hits)}`);
+            socket.emit('search-results', searchResults.hits);
+          } catch (error) {
+            console.error('Error searching messages:', error);
+            socket.emit('error', 'Failed to search messages');
+          }
+        });
+        
         
         socket.on('disconnect', () => {
             console.log(`User disconnected ${socket.id}`);

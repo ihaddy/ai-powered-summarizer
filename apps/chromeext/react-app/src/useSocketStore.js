@@ -36,6 +36,11 @@ const useSocketStore = create((set, get) => ({
       });
     });
 
+    socket.on('search-results', (results) => {
+      useChatStore.getState().setSearchResults(results);
+      set({ isLoading: false });
+    });
+
     if (typeof chrome !== "undefined" && chrome.storage) {
     socket.on('all-videos', (videos) => {
         const currentVideos = localStorage.getItem('videoTitles');

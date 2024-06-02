@@ -5,15 +5,19 @@
     "description": "Worker service for processing RabbitMQ queue messages",
     "main": "server.js",
     "scripts": {
-      "start": "nodemon server.js",
-      "dev": "nodemon server.js"
+        "start": "nodemon server.js",
+        "dev": "nodemon server.js",
+        "update-search-index": "docker-compose exec worker node /usr/src/app/addMeilisearchIndex.js",
+        "verify-search-index": "docker-compose exec worker node /usr/src/app/verifyIndex.js"
     },
     "dependencies": {
-      "@langchain/openai": "^0.0.11",
-      "amqplib": "^0.8.0",
-      "axios": "^1.6.4",
-      "dotenv": "^16.3.1",
-      "langchain": "^0.1.2",
-      "nodemon": "^3.1.1"
+        "@langchain/openai": "^0.0.11",
+        "amqplib": "^0.8.0",
+        "axios": "^1.6.4",
+        "dotenv": "^16.3.1",
+        "langchain": "^0.1.2",
+        "meilisearch": "^0.40.0",
+        "mongodb": "^6.7.0",
+        "nodemon": "^3.1.1"
     }
-  }
+}
