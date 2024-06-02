@@ -36,15 +36,18 @@ const useSocketStore = create((set, get) => ({
       });
     });
 
+    if (typeof chrome !== "undefined" && chrome.storage) {
     socket.on('all-videos', (videos) => {
-      const currentVideos = localStorage.getItem('videoTitles');
-      const newVideos = JSON.stringify(videos);
+        const currentVideos = localStorage.getItem('videoTitles');
+        const newVideos = JSON.stringify(videos);
 
-      if (newVideos !== currentVideos) {
-        localStorage.setItem('videoTitles', newVideos);
-        useChatStore.getState().setVideos(videos);
-      }
+        if (newVideos !== currentVideos) {
+            localStorage.setItem('videoTitles', newVideos);
+            useChatStore.getState().setVideos(videos);
+        }
     });
+}
+
 
     socket.on('video-update', (video) => {
       const currentVideos = useChatStore.getState().videos;

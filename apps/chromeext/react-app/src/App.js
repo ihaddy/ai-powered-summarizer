@@ -62,18 +62,21 @@ function App() {
 
 
   useEffect(() => {
-    const handleNewArticleId = (message, sender, sendResponse) => {
-      if (message.type === "NEW_ARTICLE_ID") {
-        addArticleId(message.articleId);
-      }
-    };
+    if (typeof chrome !== "undefined" && chrome.runtime && chrome.runtime.onMessage) {
+      const handleNewArticleId = (message, sender, sendResponse) => {
+        if (message.type === "NEW_ARTICLE_ID") {
+          addArticleId(message.articleId);
+        }
+      };
 
-    chrome.runtime.onMessage.addListener(handleNewArticleId);
+      chrome.runtime.onMessage.addListener(handleNewArticleId);
 
-    return () => {
-      chrome.runtime.onMessage.removeListener(handleNewArticleId);
-    };
+      return () => {
+        chrome.runtime.onMessage.removeListener(handleNewArticleId);
+      };
+    }
   }, [addArticleId]);
+
 
   useEffect(() => {
     // Initialize user store

@@ -74,6 +74,7 @@ function ChatRoom() {
     }
   }, [articles, socket]);
 
+  console.log('articles in the chatroom', articles)
   return (
     <Box sx={{ display: 'flex', width: '100%', height: '100vh' }}>
       <StyledDrawer
