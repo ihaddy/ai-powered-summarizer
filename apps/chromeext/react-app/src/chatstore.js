@@ -41,60 +41,11 @@ const useChatStore = create((set, get) => ({
     return { chatHistories: { ...state.chatHistories, [articleId]: history }};
   }),
 
-  // setArticleIds: async (mergedArticles, currentPage, totalPages, sendRequest) => {
-  //   const initializeStateFromLocalStorage = () => {
-  //     if (typeof chrome !== "undefined" && chrome.storage) {
-  //       const cachedArticles = localStorage.getItem('articles');
-  //       if (cachedArticles) {
-  //         const articles = JSON.parse(cachedArticles);
-  //         console.log('Initializing state from localStorage:', articles);
-  //         set({ articles });
-  //       } else {
-  //         console.log('Local storage is empty, setting loading to true');
-  //         set({ loading: true });
-  //       }
-  //     }
-  //   };
-  
-  //   const fetchAndCompareArticles = async () => {
-  //     try {
-  //       console.log('Sending request to fetch article titles');
-  //       const fetchedArticles = await sendRequest({ url: `/article-titles?page=${currentPage}` });
-  //       console.log('Fetched article titles:', fetchedArticles);
-  
-  //       if (typeof chrome !== "undefined" && chrome.storage) {
-  //         console.log('Updating state and localStorage with merged articles');
-  //         localStorage.setItem('articles', JSON.stringify({
-  //           articles: mergedArticles,
-  //           currentPage: currentPage,
-  //           totalPages: totalPages
-  //         }));
-  //         set({
-  //           articles: {
-  //             articles: mergedArticles,
-  //             currentPage: currentPage,
-  //             totalPages: totalPages
-  //           },
-  //           loading: false
-  //         });
-  //       }
-  //     } catch (error) {
-  //       console.error('Error fetching article titles:', error);
-  //       set({ loading: false });
-  //     }
-  //   };
-  
-  //   console.log('Initializing state from local storage');
-  //   initializeStateFromLocalStorage();
-  
-  //   console.log('Fetching and comparing articles');
-  //   await fetchAndCompareArticles();
-  
-  //   console.log('Setting articleIds:', mergedArticles.map(article => article.articleId));
-  //   set({ articleIds: mergedArticles.map(article => article.articleId) });
-  // },
-
   setArticleIds: async (mergedArticles, currentPage, totalPages, sendRequest) => {
+    console.log('mergedArticles:', mergedArticles);
+    console.log('currentPage:', currentPage);
+    console.log('totalPages:', totalPages);
+  
     const initializeStateFromLocalStorage = () => {
       if (typeof chrome !== "undefined" && chrome.storage) {
         const cachedArticles = localStorage.getItem('articles');

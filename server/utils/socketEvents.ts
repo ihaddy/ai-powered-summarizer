@@ -87,11 +87,11 @@ const fetchMoreArticles = async (socket: CustomSocket) => {
       const totalPages = Math.ceil(totalArticles / MAX_ARTICLES);
     //   have to add this check and escape hatch here because sometimes websocket events will double trigger because of react dev mode
     // or other network conditions etc. so i only want to increment current page and proceed if the total pages is greater than the current page
-      if (currentPage + 1> totalPages)  {
+      if (currentPage > totalPages)  {
         console.log('Submitted a request for a page greater than the TotalePages ');
         return
     }
-    currentPage++
+    socket.user.currentPage ++
       const skip = (currentPage - 1) * MAX_ARTICLES;
       const articles = await Chat.find({ userId: userId }, 'articleId title')
         .sort({ _id: -1 })

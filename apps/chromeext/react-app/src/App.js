@@ -13,8 +13,7 @@ import SignUp from './components/SignUp'; // Import SignUp component
 import Summarizer from './components/Summarizer';
 
 function App() {
-  const { isSidebarOpen, toggleSidebar, addArticleId, setArticleIds } = useChatStore();
-  const { socket } = useSocketStore();
+  const { toggleSidebar, addArticleId } = useChatStore();
 
   const connectSocket = useSocketStore(state => state.connectSocket);
   const disconnectSocket = useSocketStore(state => state.disconnectSocket);
@@ -43,24 +42,6 @@ function App() {
   }, [sendRequest, setSendRequest]);
 
   
-  // useEffect(() => {
-  //   const handleArticles = ({ page, articles }) => {
-  //     console.log(`Received articles for page ${page} from WebSocket:`, articles);
-  //     setArticleIds(articles, page, sendRequest);
-  //   };
-
-  //   if (socket) {
-  //     socket.on('articles', handleArticles);
-  //   }
-
-  //   return () => {
-  //     if (socket) {
-  //       socket.off('articles', handleArticles);
-  //     }
-  //   };
-  // }, [socket, sendRequest]);
-
-
   useEffect(() => {
     if (typeof chrome !== "undefined" && chrome.runtime && chrome.runtime.onMessage) {
       const handleNewArticleId = (message, sender, sendResponse) => {
