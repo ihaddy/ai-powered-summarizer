@@ -10,11 +10,12 @@ const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
 
 const chatModel = new ChatOpenAI({
   openAIApiKey: OPENAI_API_KEY,
-  modelName: "gpt-3.5-turbo-0125"
+  // modelName: "gpt-3.5-turbo-0125"
+  modelName: "gpt-4o"
 });
 
 const prompt = ChatPromptTemplate.fromMessages([
-  ["system", "Generate a dynamic prompt for another LLM to give a comprehensive summary of the following video transcript. Assess the necessary paragraph count for a detailed summary and instruct the next LLM to follow that count."],
+  ["system", "Generate a dynamic prompt for another LLM to give a comprehensive summary of the following video transcript. This video transcript may be a large json object of timestamped chunks of text of the transcript, if so, please make your summary timestamped as well in increments of 300 seconds. Assess the necessary paragraph count for a detailed summary and instruct the next LLM to follow that count."],
   ["user", "{input}"],
 ]);
 
@@ -53,8 +54,9 @@ async function processArticleWithLLM(generatedPrompt, articleContent) {
 async function generateVideoSummaryPrompt(videoData) {
   try {
     if (enableLogging) console.log('Generating prompt for video summary...');
-    const inputString = `Title: ${videoData.title}\nDescription: ${videoData.description}\nTranscript: ${videoData.transcript}`;
-    const chat = await chatModel.invoke(`Here is the video content please formulate a prompt to help an LLM summarize this video, i have included the transcript title and description:\n\n${inputString}`);
+    const inputString = `Title: ${videoData.title}\nDescription: ${videoData.description}\nTranscript: ${videoData.transcriptionWithTimestamps || videoData.transcription}`;
+    const chat = await chatModel.invoke(`Here is the video content, this video content may contain timestamps to go along with the transcript, if it does you MUST include instructions in your ouput to the downstream LLM to summarize the video in chunks of 300 seconds. It MUST respond with its summary broken up from 0-300, 300-600, etc. now formulate a prompt to help an LLM summarize this video, i have included the transcript title and description :\n\n${inputString}`);
+
     if (enableLogging) console.log('Generated prompt for video:', chat.content);
     return chat.content;
   } catch (error) {

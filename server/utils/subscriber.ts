@@ -4,8 +4,9 @@ import User from '../models/UserModel';
 import redisClient from './redisClient';
 import connectRabbitMQ from './rabbitmq';
 import { io } from '../server';
+import { index } from './meiliSearch';
 
-class SSEEmitter extends EventEmitter {}
+class SSEEmitter extends EventEmitter { }
 const sseEmitter = new SSEEmitter();
 
 // Logging flag
@@ -38,6 +39,8 @@ async function successHandler(successMessage: any) {
             });
             await chat.save();
             if (enableLogging) console.log(JSON.stringify({ message: "in subscribe.ts - successHandler: Existing chat updated in MongoDB." }, null, 2));
+            await indexChatInMeilisearch(chat);
+            if (enableLogging) console.log(JSON.stringify({ message: "in subscribe.ts - successHandler: Existing chat updated in MongoDB." }, null, 2));
         } else {
             // Create a new chat object and save it
             if (enableLogging) console.log(JSON.stringify({ message: "in subscribe.ts - successHandler: Saving new chat object to MongoDB..." }, null, 2));
@@ -56,7 +59,8 @@ async function successHandler(successMessage: any) {
             });
             await chat.save();
             if (enableLogging) console.log(JSON.stringify({ message: "in subscribe.ts - successHandler: New chat object saved to MongoDB." }, null, 2));
-
+            // Index the updated chat object in Meilisearch
+            await indexChatInMeilisearch(chat);
             // Add this chat to the user's activeChats if not already present
             if (user.activeChats && !user.activeChats.includes(chat._id.toString())) {
                 user.activeChats.push(chat._id.toString());
@@ -116,13 +120,13 @@ async function subscribeToProcessingResults() {
                 if (enableLogging) console.log(JSON.stringify({ message: "in subscribe.ts - subscribeToProcessingResults: Received message in success queue." }, null, 2));
                 const successMessage = JSON.parse(msg.content.toString());
                 if (enableLogging) console.log(JSON.stringify({ message: "in subscribe.ts - subscribeToProcessingResults: Parsed success message:", successMessage }, null, 2));
-    
+
                 // Extract userId from the successMessage
                 const { userId } = successMessage;
                 if (!userId) {
                     throw new Error("UserId is missing in the success message");
                 }
-    
+
                 // Pass the entire message to the successHandler
                 await successHandler(successMessage);
                 if (enableLogging) console.log(JSON.stringify({ message: "in subscribe.ts - subscribeToProcessingResults: Success message processed." }, null, 2));
@@ -131,7 +135,7 @@ async function subscribeToProcessingResults() {
             }
         }
     }, { noAck: true });
-    
+
     if (enableLogging) console.log(JSON.stringify({ message: "in subscribe.ts - subscribeToProcessingResults: Success queue consumer set up." }, null, 2));
 
     channel.consume(failureQueue.queue, (msg: any) => {
@@ -150,6 +154,23 @@ async function subscribeToProcessingResults() {
     if (enableLogging) console.log(JSON.stringify({ message: "in subscribe.ts - subscribeToProcessingResults: Failure queue consumer set up." }, null, 2));
 
     if (enableLogging) console.log(JSON.stringify({ message: "in subscribe.ts - subscribeToProcessingResults: Message consumption setup complete." }, null, 2));
+}
+
+async function indexChatInMeilisearch(chat: any) {
+    try {
+        const processedDocument = {
+            id: chat._id.toString(),
+            articleId: chat.articleId,
+            userId: chat.userId.toString(),
+            title: chat.title,
+            aiMessages: chat.chats.filter((chat: any) => chat.sender === 'ai').map((chat: any) => chat.message)
+        };
+
+        await index.addDocuments([processedDocument]);
+        if (enableLogging) console.log(JSON.stringify({ message: "in subscribe.ts - indexChatInMeilisearch: Chat object indexed in Meilisearch." }, null, 2));
+    } catch (error) {
+        console.error('in subscribe.ts - indexChatInMeilisearch: Error indexing chat object in Meilisearch:', error);
+    }
 }
 
 export { subscribeToProcessingResults, sseEmitter };

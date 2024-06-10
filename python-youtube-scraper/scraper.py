@@ -1,4 +1,5 @@
 import logging
+import requests
 from flask import Flask, jsonify, request
 from youtube_transcript_api import YouTubeTranscriptApi
 from selenium import webdriver
@@ -13,7 +14,6 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 install_chrome_driver()
-
 app = Flask(__name__)
 
 def scrape_video(video_id):
@@ -22,13 +22,28 @@ def scrape_video(video_id):
     chrome_options.add_argument("--no-sandbox")  # Bypass OS security model, REQUIRED on Linux
     chrome_options.add_argument("--disable-dev-shm-usage")  # Overcome limited resource problems
     driver = webdriver.Chrome(options=chrome_options)
-    result = {"title": "", "description": "", "transcript": "", "thumbnail": ""}
+    result = {"title": "", "description": "", "transcript": "", "transcriptionWithTimestamps": [], "thumbnail": ""}
 
     try:
-        transcript = YouTubeTranscriptApi.get_transcript(video_id)
-        result["transcript"] = ' '.join([entry['text'] for entry in transcript])
+        # Try getting the transcript from the Whisper Flask app
+        whisper_url = f"http://192.168.1.170:5000/transcribe"
+        whisper_response = requests.post(whisper_url, json={"video_id": video_id})
+
+        if whisper_response.status_code == 200:
+            whisper_data = whisper_response.json()
+            result["transcript"] = whisper_data["text"]["text"]
+            result["transcriptionWithTimestamps"] = whisper_data["text"]["chunks"]
+        else:
+            raise Exception(f"Error fetching transcript from Whisper app: {whisper_response.text}")
+
     except Exception as e:
-        result["error"] = f"Error fetching transcript: {str(e)}"
+        logger.warning(f"Error fetching transcript from Whisper app: {str(e)}. Falling back to YouTubeTranscriptApi.")
+
+        try:
+            transcript = YouTubeTranscriptApi.get_transcript(video_id)
+            result["transcript"] = ' '.join([entry['text'] for entry in transcript])
+        except Exception as e:
+            result["error"] = f"Error fetching transcript: {str(e)}"
 
     try:
         driver.get(f'https://www.youtube.com/watch?v={video_id}')
