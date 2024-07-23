@@ -1,3 +1,4 @@
+import Sentry from './instrument';
 import { Socket } from 'socket.io';
 import { ExtendedError } from 'socket.io/dist/namespace';
 import jwt, { JwtPayload } from 'jsonwebtoken';
@@ -10,7 +11,9 @@ const verifySocketToken = (socket: CustomSocket, next: (err?: ExtendedError) => 
     // Extract the token from the query parameters sent during socket connection
     const token = socket.handshake.query.token as string;
     if (!token) {
-        return next(new Error('Authentication error: No token provided'));
+        const error = new Error('Authentication error: No token provided');
+        Sentry.captureException(error); // Capture the error with Sentry
+        return next(error);
     }
 
     try {
@@ -19,6 +22,7 @@ const verifySocketToken = (socket: CustomSocket, next: (err?: ExtendedError) => 
         console.log('WebSocket token verified correctly: ', socket.user);
         next();
     } catch (error) {
+        Sentry.captureException(error); // Capture the error with Sentry
         next(new Error('Authentication error: Invalid token'));
     }
 };

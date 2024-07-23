@@ -1,3 +1,4 @@
+import Sentry from './utils/instrument';
 import express, { Request, Response, NextFunction } from 'express';
 import cors from 'cors';
 import mongoose from 'mongoose';
@@ -71,17 +72,23 @@ async function initializeServer() {
     httpServer.listen(PORT, () => logger.info(`Server running on port ${PORT}`));
   } catch (error) {
     logger.info('Failed to connect to databases:', error);
+    Sentry.captureException(error); // Capture the error with Sentry
     process.exit(1);
   }
 }
 
+// Add Sentry error handler
+Sentry.setupExpressErrorHandler(app);
+
 process.on('uncaughtException', (error: Error) => {
   console.error('Uncaught Exception at the PM2 server level:', error);
+  Sentry.captureException(error); // Capture the error with Sentry
   process.exit(1);
 });
 
 process.on('unhandledRejection', (reason, promise) => {
   console.error('Unhandled Rejection at the PM2 server level:', promise, 'reason:', reason);
+  Sentry.captureException(reason); // Capture the error with Sentry
 });
 
 initializeServer();

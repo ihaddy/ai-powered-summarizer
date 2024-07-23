@@ -1,16 +1,18 @@
+import Sentry from './instrument';
 import { EventEmitter } from 'events';
 import Chat from '../models/chatModel';
 import User from '../models/UserModel';
 import redisClient from './redisClient';
-import connectRabbitMQ from './rabbitmq';
 import { io } from '../server';
 import { index } from './meiliSearch';
+import { setupQueues, getQueues } from './queueConfig';
+import rabbitMQConnection from './rabbitMQConnection';
 
 class SSEEmitter extends EventEmitter { }
 const sseEmitter = new SSEEmitter();
 
 // Logging flag
-const enableLogging = true;
+const enableLogging = false;
 
 async function successHandler(successMessage: any) {
     if (enableLogging) console.log(JSON.stringify({ message: "in subscribe.ts - successHandler: Received success message:", successMessage }, null, 2));
@@ -22,7 +24,9 @@ async function successHandler(successMessage: any) {
         // Find the user by userId
         const user = await User.findById(userId);
         if (!user) {
-            throw new Error("User not found");
+            const error = new Error("User not found");
+            Sentry.captureException(error); // Capture the error with Sentry
+            throw error;
         }
 
         // Check if a chat with the same articleId already exists in MongoDB
@@ -35,7 +39,7 @@ async function successHandler(successMessage: any) {
             chat.chats.push({
                 timestamp: new Date().toISOString(),
                 sender: "ai",
-                message: successMessage.summary
+                message: successMessage.result
             });
             await chat.save();
             if (enableLogging) console.log(JSON.stringify({ message: "in subscribe.ts - successHandler: Existing chat updated in MongoDB." }, null, 2));
@@ -50,7 +54,7 @@ async function successHandler(successMessage: any) {
                 chats: [{
                     timestamp: new Date().toISOString(),
                     sender: "ai",
-                    message: successMessage.summary
+                    message: successMessage.result
                 }],
                 title: successMessage.title,
                 description: successMessage.description,
@@ -86,13 +90,58 @@ async function successHandler(successMessage: any) {
         sseEmitter.emit('newSummary', successMessage);
         if (enableLogging) console.log(JSON.stringify({ message: "in subscribe.ts - successHandler: Success message emitted to SSE listeners." }, null, 2));
 
-        // Emit the WebSocket event "newVideoSummarized" with the video's name and ID
-        const videoName = successMessage.title; // Assuming the video name is stored in the "title" field of the success message
-        const videoId = successMessage.articleId; // Assuming the video ID is stored in the "videoId" field of the success message
+        // Emit the WebSocket event "newVideoSummarized" with the video's name, ID, and summary
+        const videoName = successMessage.title;
+        const videoId = successMessage.articleId;
         io.emit('newVideoSummarized', { videoName, videoId });
-        if (enableLogging) console.log(JSON.stringify({ message: `in subscribe.ts - successHandler: WebSocket event 'newVideoSummarized' emitted with video name and ID. name: ${videoName} videoId: ${successMessage.articleId}` }, null, 2));
+        if (enableLogging) console.log(JSON.stringify({ message: `in subscribe.ts - successHandler: WebSocket event 'newVideoSummarized' emitted with video name, ID, and summary. name: ${videoName} videoId: ${successMessage.articleId}` }, null, 2));
     } catch (error) {
         console.error("in subscribe.ts - successHandler: Error:", error);
+        Sentry.captureException(error); // Capture the error with Sentry
+    }
+}
+
+async function handleChatSuccess(chatSuccessMessage: any) {
+    try {
+        const { userId, articleId, message, result } = chatSuccessMessage;
+
+        // Find the chat in MongoDB
+        let chat = await Chat.findOne({ articleId, userId });
+
+        if (chat) {
+            // Update the existing chat
+            chat.chats.push({
+                timestamp: new Date().toISOString(),
+                sender: "ai",
+                message: result
+            });
+            await chat.save();
+
+            // Update Redis cache
+            const userSpecificRedisKey = `user:${userId}:chat:${articleId}`;
+            await redisClient.set(userSpecificRedisKey, JSON.stringify(chat));
+
+            // Index in Meilisearch
+            await indexChatInMeilisearch(chat);
+            const formattedMessage = {
+                role: 'ai',
+                content: result, // Assuming 'result' is the AI's response text
+                timestamp: new Date().toISOString()
+              };
+
+              
+            // Emit WebSocket event
+            io.emit('chatUpdate', { articleId, message: formattedMessage });
+
+            if (enableLogging) console.log(JSON.stringify({ message: "Chat success message processed and updates applied." }, null, 2));
+        } else {
+            const error = new Error('Chat not found for articleId: ' + articleId);
+            Sentry.captureException(error); // Capture the error with Sentry
+            console.error(error.message);
+        }
+    } catch (error) {
+        console.error('Error handling chat success:', error);
+        Sentry.captureException(error); // Capture the error with Sentry
     }
 }
 
@@ -100,60 +149,104 @@ async function subscribeToProcessingResults() {
     if (enableLogging) console.log(JSON.stringify({ message: "in subscribe.ts - subscribeToProcessingResults: Subscribing to processing results..." }, null, 2));
 
     if (enableLogging) console.log(JSON.stringify({ message: 'in subscribe.ts - subscribeToProcessingResults: Redis client IS ready' }, null, 2));
-    const { channel } = await connectRabbitMQ();
 
-    await channel.assertExchange('success', 'fanout', { durable: true });
-    await channel.assertExchange('failure', 'fanout', { durable: true });
+    try {
+        await rabbitMQConnection.initialize();
+        await setupQueues();
+        const queues = getQueues();
+        const channel = rabbitMQConnection.getChannel();
 
-    const successQueue = await channel.assertQueue('', { exclusive: true });
-    const failureQueue = await channel.assertQueue('', { exclusive: true });
+        if (enableLogging) console.log(JSON.stringify({ message: "in subscribe.ts - subscribeToProcessingResults: Queues and exchanges set up." }, null, 2));
 
-    if (enableLogging) console.log(JSON.stringify({ message: "in subscribe.ts - subscribeToProcessingResults: Queues and exchanges set up." }, null, 2));
+        channel.consume(queues.successQueue, async (msg: any) => {
+            if (msg && msg.content) {
+                try {
+                    if (enableLogging) console.log(JSON.stringify({ message: "in subscribe.ts - subscribeToProcessingResults: Received message in success queue." }, null, 2));
+                    const successMessage = JSON.parse(msg.content.toString());
+                    if (enableLogging) console.log(JSON.stringify({ message: "in subscribe.ts - subscribeToProcessingResults: Parsed success message:", successMessage }, null, 2));
 
-    channel.bindQueue(successQueue.queue, 'success', '');
-    channel.bindQueue(failureQueue.queue, 'failure', '');
-    if (enableLogging) console.log(JSON.stringify({ message: "in subscribe.ts - subscribeToProcessingResults: Queues bound to exchanges." }, null, 2));
+                    const { userId } = successMessage;
+                    if (!userId) {
+                        const error = new Error("UserId is missing in the success message");
+                        Sentry.captureException(error); // Capture the error with Sentry
+                        throw error;
+                    }
 
-    channel.consume(successQueue.queue, async (msg: any) => {
-        if (msg.content) {
-            try {
-                if (enableLogging) console.log(JSON.stringify({ message: "in subscribe.ts - subscribeToProcessingResults: Received message in success queue." }, null, 2));
-                const successMessage = JSON.parse(msg.content.toString());
-                if (enableLogging) console.log(JSON.stringify({ message: "in subscribe.ts - subscribeToProcessingResults: Parsed success message:", successMessage }, null, 2));
+                    await successHandler(successMessage);
+                    if (enableLogging) console.log(JSON.stringify({ message: "in subscribe.ts - subscribeToProcessingResults: Success message processed." }, null, 2));
 
-                // Extract userId from the successMessage
-                const { userId } = successMessage;
-                if (!userId) {
-                    throw new Error("UserId is missing in the success message");
+                    // Removed: channel.ack(msg);
+                } catch (error) {
+                    console.error('in subscribe.ts - subscribeToProcessingResults: Error processing message:', error);
+                    Sentry.captureException(error); // Capture the error with Sentry
+
+                    try {
+                        const failureMessage = {
+                            originalMessage: JSON.parse(msg.content.toString()),
+                            error: error.message,
+                            timestamp: new Date().toISOString()
+                        };
+                        await channel.sendToQueue(queues.failureQueue, Buffer.from(JSON.stringify(failureMessage)));
+                        if (enableLogging) console.log(JSON.stringify({ message: "in subscribe.ts - subscribeToProcessingResults: Message pushed to failure queue." }, null, 2));
+
+                        // Removed: channel.ack(msg);
+                    } catch (sendError) {
+                        console.error('in subscribe.ts - subscribeToProcessingResults: Error pushing message to failure queue:', sendError);
+                        Sentry.captureException(sendError); // Capture the error with Sentry
+                        // Removed: channel.nack(msg, false, true);
+                    }
                 }
-
-                // Pass the entire message to the successHandler
-                await successHandler(successMessage);
-                if (enableLogging) console.log(JSON.stringify({ message: "in subscribe.ts - subscribeToProcessingResults: Success message processed." }, null, 2));
-            } catch (error) {
-                console.error('in subscribe.ts - subscribeToProcessingResults: Error processing message:', error);
             }
-        }
-    }, { noAck: true });
+        }, { noAck: true }); // Added noAck: true to prevent auto-acknowledgment
 
-    if (enableLogging) console.log(JSON.stringify({ message: "in subscribe.ts - subscribeToProcessingResults: Success queue consumer set up." }, null, 2));
+        if (enableLogging) console.log(JSON.stringify({ message: "in subscribe.ts - subscribeToProcessingResults: Success queue consumer set up." }, null, 2));
 
-    channel.consume(failureQueue.queue, (msg: any) => {
-        if (msg.content) {
-            try {
-                if (enableLogging) console.log(JSON.stringify({ message: "in subscribe.ts - subscribeToProcessingResults: Received message in failure queue." }, null, 2));
-                const failureMessage = JSON.parse(msg.content.toString());
-                if (enableLogging) console.log(JSON.stringify({ message: "in subscribe.ts - subscribeToProcessingResults: Parsed failure message:", failureMessage }, null, 2));
-                // Handle failure as needed
-            } catch (error) {
-                console.error('in subscribe.ts - subscribeToProcessingResults: Failed to parse failure message content as JSON:', error);
+        channel.consume(queues.failureQueue, (msg: any) => {
+            if (msg && msg.content) {
+                try {
+                    if (enableLogging) console.log(JSON.stringify({ message: "in subscribe.ts - subscribeToProcessingResults: Received message in failure queue." }, null, 2));
+                    const failureMessage = JSON.parse(msg.content.toString());
+                    if (enableLogging) console.log(JSON.stringify({ message: "in subscribe.ts - subscribeToProcessingResults: Parsed failure message:", failureMessage }, null, 2));
+                    // Handle failure as needed
+                    // Removed: channel.ack(msg);
+                } catch (error) {
+                    console.error('in subscribe.ts - subscribeToProcessingResults: Failed to parse failure message content as JSON:', error);
+                    Sentry.captureException(error); // Capture the error with Sentry
+                    // Removed: channel.nack(msg, false, false);
+                }
             }
-        }
-    }, { noAck: true });
+        }, { noAck: true }); // Added noAck: true to prevent auto-acknowledgment
 
-    if (enableLogging) console.log(JSON.stringify({ message: "in subscribe.ts - subscribeToProcessingResults: Failure queue consumer set up." }, null, 2));
+        if (enableLogging) console.log(JSON.stringify({ message: "in subscribe.ts - subscribeToProcessingResults: Failure queue consumer set up." }, null, 2));
 
-    if (enableLogging) console.log(JSON.stringify({ message: "in subscribe.ts - subscribeToProcessingResults: Message consumption setup complete." }, null, 2));
+        // Set up consumer for chat success queue
+        channel.consume(queues.chatSuccessQueue, async (msg: any) => {
+            if (msg && msg.content) {
+                try {
+                    if (enableLogging) console.log(JSON.stringify({ message: "Received message in chat success queue." }, null, 2));
+                    const chatSuccessMessage = JSON.parse(msg.content.toString());
+                    if (enableLogging) console.log(JSON.stringify({ message: "Parsed chat success message:", chatSuccessMessage }, null, 2));
+
+                    await handleChatSuccess(chatSuccessMessage);
+                    if (enableLogging) console.log(JSON.stringify({ message: "Chat success message processed." }, null, 2));
+
+                    // Removed: channel.ack(msg);
+                } catch (error) {
+                    console.error('Error processing chat success message:', error);
+                    Sentry.captureException(error); // Capture the error with Sentry
+                    // Removed: channel.nack(msg, false, true);
+                }
+            }
+        }, { noAck: true }); // Added noAck: true to prevent auto-acknowledgment
+
+        if (enableLogging) console.log(JSON.stringify({ message: "Chat success queue consumer set up." }, null, 2));
+
+        if (enableLogging) console.log(JSON.stringify({ message: "in subscribe.ts - subscribeToProcessingResults: Message consumption setup complete." }, null, 2));
+    } catch (error) {
+        console.error('Failed to initialize RabbitMQ connection:', error);
+        Sentry.captureException(error); // Capture the error with Sentry
+        // You might want to implement some fallback behavior here
+    }
 }
 
 async function indexChatInMeilisearch(chat: any) {
@@ -170,6 +263,7 @@ async function indexChatInMeilisearch(chat: any) {
         if (enableLogging) console.log(JSON.stringify({ message: "in subscribe.ts - indexChatInMeilisearch: Chat object indexed in Meilisearch." }, null, 2));
     } catch (error) {
         console.error('in subscribe.ts - indexChatInMeilisearch: Error indexing chat object in Meilisearch:', error);
+        Sentry.captureException(error); // Capture the error with Sentry
     }
 }
 

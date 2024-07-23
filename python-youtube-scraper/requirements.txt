@@ -2,3 +2,5 @@ flask
 selenium
 youtube_transcript_api
 chromedriver_autoinstaller
+pika
+sentry-sdk

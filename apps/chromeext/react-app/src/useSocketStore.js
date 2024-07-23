@@ -26,6 +26,15 @@ const useSocketStore = create((set, get) => ({
     socket.on('connect', () => {
       console.log('Connected to socket server with authentication');
     });
+// the user asking a question
+    socket.on('chat-message-saved', ({ articleId, message }) => {
+      useChatStore.getState().addMessageToChat(articleId, message);
+    });
+// the AI response
+    socket.on('chatUpdate', ({ articleId, message }) => {
+      console.log(`Received chat update for articleId ${articleId}:`, message);
+      useChatStore.getState().addMessageToChat(articleId, message);
+    });
 
     socket.on('newVideoSummarized', (data) => {
       console.log('one new video summarized:', data);
@@ -90,6 +99,13 @@ const useSocketStore = create((set, get) => ({
 
   disconnectSocket: () => {
     get().socket?.disconnect();
+  },
+
+  sendChatMessage: (articleId, message) => {
+    const socket = get().socket;
+    if (socket) {
+      socket.emit('send-chat-message', { articleId, message });
+    }
   },
 }));
 

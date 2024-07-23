@@ -41,6 +41,18 @@ const useChatStore = create((set, get) => ({
     return { chatHistories: { ...state.chatHistories, [articleId]: history }};
   }),
 
+  addMessageToChat: (articleId, message) => set((state) => {
+    const currentHistory = state.chatHistories[articleId] || [];
+    const newState = {
+      chatHistories: {
+        ...state.chatHistories,
+        [articleId]: [...currentHistory, message]
+      }
+    };
+    console.log('Updated chat history:', newState.chatHistories[articleId]);
+    return newState;
+  }),
+
   setArticleIds: async (mergedArticles, currentPage, totalPages, sendRequest) => {
     console.log('mergedArticles:', mergedArticles);
     console.log('currentPage:', currentPage);

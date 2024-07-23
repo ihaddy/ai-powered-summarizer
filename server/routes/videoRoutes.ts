@@ -5,7 +5,8 @@ import redisClient from '../utils/redisClient';
 import connectRabbitMQ from '../utils/rabbitmq';
 import axios from 'axios';
 import logger from '../utils/logger';
-import verifyJWT  from '../utils/verifyJWT';
+import verifyJWT from '../utils/verifyJWT';
+import Sentry from '../utils/instrument'; // Import Sentry
 import { Request } from '../customTypes/request';
 
 const router = express.Router();
@@ -55,6 +56,7 @@ router.post('/summarize-videos', verifyJWT, async (req: Request, res: Response) 
                     dataToSend = { articleId: articleId, ...videoData };
                 } catch (fetchError) {
                     console.error(`Error fetching data from Flask service: ${fetchError.message}`);
+                    Sentry.captureException(fetchError); // Capture the error with Sentry
                     throw new Error(fetchError.message);
                 }
             }
@@ -71,7 +73,9 @@ router.post('/summarize-videos', verifyJWT, async (req: Request, res: Response) 
         res.status(200).send(dataToSend);
     } catch (error) {
         console.error('POST /summarize-videos - Error:', error);
+        Sentry.captureException(error); // Capture the error with Sentry
         res.status(500).send({ error: 'Internal Server Error' });
     }
 });
+
 export default router;
