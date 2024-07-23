@@ -2,6 +2,9 @@ import os
 from langchain import ChatOpenAI
 from langchain.prompts import ChatPromptTemplate
 from langchain.schema.output_parser import StrOutputParser
+import sentry_sdk
+
+
 
 OUTPUT_PARSER = StrOutputParser()
 

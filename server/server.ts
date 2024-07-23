@@ -1,8 +1,14 @@
+
+// dotenv called first since entry imports it, didn't want to move in sentry
+// incase i drop sentry later or other hosters dont integrate with it
+import dotenv from 'dotenv';
+dotenv.config();
+
 import Sentry from './utils/instrument';
 import express, { Request, Response, NextFunction } from 'express';
 import cors from 'cors';
 import mongoose from 'mongoose';
-import dotenv from 'dotenv';
+
 import { subscribeToProcessingResults } from './utils/subscriber';
 import logger from './utils/logger';
 import redisClient from './utils/redisClient';

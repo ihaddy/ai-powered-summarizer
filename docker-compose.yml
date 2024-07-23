@@ -26,6 +26,9 @@ services:
     build: ./python-youtube-scraper
     volumes:
       - ./python-youtube-scraper:/usr/src/app
+    env_file:
+      - ./.env
+    
 
   redis:
     image: "redis:latest"
